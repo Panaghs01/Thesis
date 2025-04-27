@@ -48,15 +48,15 @@ class classifier(nn.Module):
         
         return x
 
-def adversarial_walk(f,h,a,quantizer,steps = 8):
+def adversarial_walk(f,h,a,quantizer,steps = 20):
     h_delta = h.clone().detach().requires_grad_(True)
     e = 1e-6
     for _ in range(steps):
         prediction = f(h_delta)
 
         entropy = -torch.special.entr(prediction).sum(dim=1).mean()
-        print(entropy)
-        gradient = -torch.autograd.grad(entropy, h_delta)[0]
+        
+        gradient = torch.autograd.grad(entropy, h_delta)[0]
         
         delta = (gradient - gradient.mean()) / gradient.std() + e        
         h_delta = h_delta + a*delta
@@ -256,7 +256,7 @@ colored_train = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", 256,
 colored_test = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", 32,1,train = False,num_workers=0)
     
 
-ALPHA = 0.1
+ALPHA = 0.3
 TRAIN = False
 Train_f = False
 batch_size = 256
