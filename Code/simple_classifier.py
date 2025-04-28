@@ -25,7 +25,7 @@ def train_classifier(model,classifier,epochs,optimizer,criterion,dataloader):
     for step in range(epochs):
         progress2 = tqdm(dataloader,desc = f"Epoch {step+1}", unit="batch")
         total_loss = 0
-        for im,label,_ in progress2:
+        for im,label in progress2:
             with torch.no_grad():    
                 h = model.encoder(im)
                 h = model.pre_vq_conv(h)

@@ -16,7 +16,7 @@ from torchvision.utils import make_grid
 import ColorMnist
 import vq_vae
 import simple_classifier
-
+import SkinCancerData
 
 
 def imshow(img):
@@ -54,47 +54,50 @@ transform = transforms.Compose([
     ])
 
 
-training_data = datasets.MNIST(root="data", train=True, download=True,
-                                  transform = transform)
+# training_data = datasets.MNIST(root="data", train=True, download=True,
+#                                   transform = transform)
 
-validation_data = datasets.MNIST(root="data", train=False, download=True,
-                                  transform = transform)
+# validation_data = datasets.MNIST(root="data", train=False, download=True,
+#                                   transform = transform)
 
-batch_size = 256
+batch_size = 64
 
-colored_train = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,num_workers=0)
-colored_test = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,train = False,num_workers=0)
-    
+#colored_train = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,num_workers=0)
+#colored_test = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,train = False,num_workers=0)
+
+
+path = "archive/metadata.csv"
+skin_train = SkinCancerData.CreateLoader(path, transform, batch_size)
+skin_test = SkinCancerData.CreateLoader(path, transform, batch_size, train = False)
+
 
 ALPHA = 0.1
 TRAIN = False
-Train_f = True
+Train_f = False
 
-epochs = 100
+epochs = 20
 
 num_hiddens = 256
 num_residual_hiddens = 32
-num_residual_layers = 2
+num_residual_layers = 3
 embedding_dim = 64
-num_embeddings = 128
-commitment_cost = 0.25
+num_embeddings = 2056
+commitment_cost = 0.5
 decay = 0.99
-learning_rate = 1e-4
+learning_rate = 1e-3
     
 
 
-training_loader = DataLoader(training_data, 
-                             batch_size=batch_size, 
-                             shuffle=True,
-                             pin_memory=True) 
+# training_loader = DataLoader(training_data, 
+#                              batch_size=batch_size, 
+#                              shuffle=True,
+#                              pin_memory=True) 
     
-validation_loader = DataLoader(validation_data,
-                               batch_size=43,
-                               shuffle=True,
-                               pin_memory=True)
+# validation_loader = DataLoader(validation_data,
+#                                batch_size=43,
+#                                shuffle=True,
+#                                pin_memory=True)
 
-
-    
 
 model = vq_vae.model(num_hiddens,num_residual_layers,num_residual_hiddens,num_embeddings, embedding_dim, 
               commitment_cost)
@@ -103,37 +106,47 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
 criterion = torch.nn.MSELoss()
 
 if TRAIN:
-    vq_vae.train_model(model,epochs, optimizer, criterion, colored_train)
+    vq_vae.train_model(model,epochs, optimizer, criterion, skin_train)
 
 else:
-    model.load_state_dict(torch.load("vqvae2.pth",weights_only=False))
+    model.load_state_dict(torch.load("vqvae.pth",weights_only=False))
+    
+    (im,label) = next(iter(skin_test))
+    
+    image = im
+    
+    imshow(make_grid(image[:32]))
+    
+    _,recon,_ = model(im)
+    
+    imshow(make_grid(recon[:32]))
 
 f = simple_classifier.classifier(64*7*7, 10)
 
 f_optimizer = optim.SGD(f.parameters(),lr = 1e-3)
 f_criterion = nn.CrossEntropyLoss()
-epochs_f = 100
+epochs_f = 20
 
 if Train_f:
     simple_classifier.train_classifier(model,f,
                                        epochs_f, f_optimizer,
-                                       f_criterion, colored_train)
+                                       f_criterion, skin_train)
 
 
 else:
-    f.load_state_dict(torch.load("classifier2.pth",weights_only=False))
+    f.load_state_dict(torch.load("classifier.pth",weights_only=False))
     f.eval()
     model.eval()
     
-    (im,_,_) = next(iter(colored_test))
+    (im,label) = next(iter(skin_test))
     
     image = im
     
-    imshow(make_grid(image[:64]))
+    imshow(make_grid(image[:32]))
     
     h = model.encoder(image)
     h = model.pre_vq_conv(h)
     output,perplexity = adversarial_walk(f, h, ALPHA,model)
     recon = model.decoder(output)
     
-    imshow(make_grid(recon[:64]))
+    imshow(make_grid(recon[:32]))

@@ -43,18 +43,25 @@ class CustomDataset(Dataset):
         
         return image,label
     
+
+def CreateLoader(path,transform,batch_size,train = True):
+    data = CustomDataset(path,transform=transform)    
+    loader = DataLoader(data,batch_size=batch_size, shuffle = train)
+    return loader
     
-path = "archive/metadata.csv"
-data = CustomDataset(path)
+    
+
+# path = "archive/metadata.csv"
+# data = CustomDataset(path)
 
 
-transform = transforms.Compose([transforms.ToTensor(),
-                                transforms.ToPILImage()])
-im , _ = data[0]
+# transform = transforms.Compose([transforms.ToTensor(),
+#                                 transforms.ToPILImage()])
+# im , _ = data[0]
 
-img = transform(im)
-print(type(img))
-img.show()
+# img = transform(im)
+# print(type(img))
+# img.show()
 
 
 
