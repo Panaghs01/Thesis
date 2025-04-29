@@ -55,16 +55,16 @@ transform = transforms.Compose([
 
 batch_size = 64
 
-#colored_train = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,num_workers=0)
-#colored_test = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,train = False,num_workers=0)
+colored_train = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,num_workers=0)
+colored_test = ColorMnist.get_biased_mnist_dataloader("coloredmnist_data", batch_size,1,train = False,num_workers=0)
 
 
 path = "archive/metadata.csv"
-skin_train = SkinCancerData.CreateLoader(path, transform, batch_size)
-skin_test = SkinCancerData.CreateLoader(path, transform, batch_size, train = False)
+# skin_train = SkinCancerData.CreateLoader(path, transform, batch_size)
+# skin_test = SkinCancerData.CreateLoader(path, transform, batch_size, train = False)
 
 
-ALPHA = 0.1
+ALPHA = 0.3
 TRAIN = False
 Train_f = False
 
@@ -72,9 +72,9 @@ epochs = 20
 
 num_hiddens = 256
 num_residual_hiddens = 32
-num_residual_layers = 3
+num_residual_layers = 2
 embedding_dim = 64
-num_embeddings = 2056
+num_embeddings = 128
 commitment_cost = 0.5
 decay = 0.99
 learning_rate = 1e-3
@@ -99,12 +99,12 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
 criterion = torch.nn.MSELoss()
 
 if TRAIN:
-    vq_vae.train_model(model,epochs, optimizer, criterion, skin_train)
+    vq_vae.train_model(model,epochs, optimizer, criterion, colored_train)
 
 else:
-    model.load_state_dict(torch.load("vqvae.pth",weights_only=False))
+    model.load_state_dict(torch.load("mnist_vqvae.pth",weights_only=False))
     
-    (im,label) = next(iter(skin_test))
+    (im,label,_) = next(iter(colored_test))
     
     image = im
     
@@ -123,15 +123,15 @@ epochs_f = 20
 if Train_f:
     simple_classifier.train_classifier(model,f,
                                        epochs_f, f_optimizer,
-                                       f_criterion, skin_train)
+                                       f_criterion, colored_train)
 
 
 else:
-    f.load_state_dict(torch.load("classifier.pth",weights_only=False))
+    f.load_state_dict(torch.load("mnist_classifier.pth",weights_only=False))
     f.eval()
     model.eval()
     
-    (im,label) = next(iter(skin_test))
+    (im,label,_) = next(iter(colored_test))
     
     image = im
     

@@ -191,7 +191,7 @@ def train_model(model,epochs,optimizer,criterion,dataloader):
     
         progress_bar = tqdm(dataloader,desc = f"Epoch {epoch_idx+1}", unit="batch")
         total_loss = 0
-        for im,label in progress_bar:
+        for im,label,_ in progress_bar:
             optimizer.zero_grad()
     
             vq_loss, data_recon , perplexity = model(im)
