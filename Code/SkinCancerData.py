@@ -34,7 +34,7 @@ class CustomDataset(Dataset):
             
         label = torch.tensor(label)
         
-        return image,label,None
+        return image,label,label
     
 
 def CreateLoader(path,transform,batch_size,train = True):
