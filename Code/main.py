@@ -63,7 +63,7 @@ path = "archive/metadata.csv"
 skin_train = SkinCancerData.CreateLoader(path, transform, batch_size)
 skin_test = SkinCancerData.CreateLoader(path, transform, batch_size, train = False)
 
-num_classes = 10
+num_classes = 2
 ALPHA = 0.01
 TRAIN = False
 Train_f = False
@@ -116,7 +116,7 @@ else:
 
 f = simple_classifier.classifier(64*7*7, num_classes)
 
-f_optimizer = optim.SGD(f.parameters(),lr = 1e-3)
+f_optimizer = optim.SGD(f.parameters(),lr = 1e-2)
 f_criterion = nn.CrossEntropyLoss()
 epochs_f = 100
 
