@@ -16,9 +16,10 @@ def imshow(img):
     img = img / 2 + 0.5  # unnormalize
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.axis('off')
     plt.show()
 
-def adversarial_walk(f,h,a,model,steps = 10):
+def adversarial_walk(f,h,a,model,steps = 4):
     h_delta = h.clone().detach().requires_grad_(True)
 
     e = 1e-6
@@ -64,7 +65,7 @@ skin_train = SkinCancerData.CreateLoader(path, transform, batch_size)
 skin_test = SkinCancerData.CreateLoader(path, transform, batch_size, train = False)
 
 num_classes = 2
-ALPHA = 0.01
+ALPHA = 0.03
 TRAIN = False
 Train_f = False
 
