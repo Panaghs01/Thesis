@@ -496,7 +496,7 @@ class Trainer():
             self.logger.write('Begin evaluation...\n')
             self._clear_cache()
             self.is_training = False
-            self.net.eval()
+            #self.net.eval()
 
             # Iterate over data.
             for self.batch_id, batch in enumerate(self.dataloaders['val'], 0):

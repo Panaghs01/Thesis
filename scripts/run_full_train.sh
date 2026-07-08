@@ -7,7 +7,7 @@ img_size=224
 batch_size=32
 lr=1e-3
 lr_policy=linear
-max_epochs=30
+max_epochs=50
 optimizer=sgd
 reset_lr=0
 
