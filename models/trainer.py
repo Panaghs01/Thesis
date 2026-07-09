@@ -36,20 +36,18 @@ class Trainer():
         self.device = torch.device("cuda:%s" % args.gpu_ids[0] if torch.cuda.is_available() and len(args.gpu_ids)>0
                                    else "cpu")
 
-
+        self.net.to(self.device)
 
         # Learning rate and Beta1 for Adam optimizers
         self.lr = args.lr
 
         if args.train == 'strong_classifier':
-            pass
+            self._freeze_model()
         elif args.train == 'vqvae':
             self.net = self.vqvae
         elif args.train == 'classifier':
             self.net = self.classifier
             self.vqvae.to(self.device)
-
-        self.net.to(self.device)
 
         # define optimizers
         if args.optimizer == 'sgd':
@@ -518,3 +516,7 @@ class Trainer():
         arr = 255 * (arr - arr.min()) / (arr.max() - arr.min() + 1e-8)
         #print(f"array size {arr[:,:,0,:].shape}, target shape {shape}")
         return cv2.resize(arr, (shape[1], shape[0]))
+    
+    def _freeze_model(self):
+        for param in self.net.features_conv.parameters():
+            param.requires_grad = False

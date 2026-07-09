@@ -19,13 +19,13 @@ residual_layers=6
 residual_hiddens=512
 vqvae_loss=mse
 
-lad_alpha=0.1
-walk_steps=30
+lad_alpha=0.15
+walk_steps=20
 
 num_workers=8
-project_name=classifier_test8
+project_name=lad_tests
 data_name=Fitzpatrick17k
-train=classifier
+train=strong_classifier
 
 python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --img_size ${img_size} --batch_size ${batch_size} --lr ${lr} \

@@ -34,7 +34,7 @@ def define_net(args):
         if os.path.exists(f"{args.best_ckpts}/best_ckpt_classifier.pt") and os.path.exists(f"{args.best_ckpts}/best_ckpt_vqvae.pt"):
             print("Loading models...")
             checkpoint_vq = torch.load(f"{args.best_ckpts}/best_ckpt_vqvae.pt")
-            checkpoint_class = torch.load(f"{args.best_ckpts}/best_ckpt_classifier.pt")
+            checkpoint_class = torch.load(f"{args.best_ckpts}/best_ckpt_classifier.pt",weights_only=Falses)
             vqvae_ckpt.load_state_dict(checkpoint_vq['model_strong_state_dict'])
             classifier_ckpt.load_state_dict(checkpoint_class['model_strong_state_dict'])
         else:
@@ -135,6 +135,8 @@ class base_resnet18(Base_Grad_model):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
+    
+        
 
 
 class base_efficientnet_b0(Base_Grad_model):
