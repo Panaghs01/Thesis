@@ -34,7 +34,7 @@ def define_net(args):
         if os.path.exists(f"{args.best_ckpts}/best_ckpt_classifier.pt") and os.path.exists(f"{args.best_ckpts}/best_ckpt_vqvae.pt"):
             print("Loading models...")
             checkpoint_vq = torch.load(f"{args.best_ckpts}/best_ckpt_vqvae.pt")
-            checkpoint_class = torch.load(f"{args.best_ckpts}/best_ckpt_classifier.pt",weights_only=Falses)
+            checkpoint_class = torch.load(f"{args.best_ckpts}/best_ckpt_classifier.pt",weights_only=False)
             vqvae_ckpt.load_state_dict(checkpoint_vq['model_strong_state_dict'])
             classifier_ckpt.load_state_dict(checkpoint_class['model_strong_state_dict'])
         else:

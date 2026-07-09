@@ -7,8 +7,8 @@ img_size=224
 batch_size=32
 lr=1e-3
 lr_policy=linear
-max_epochs=50
-optimizer=sgd
+max_epochs=500
+optimizer=adam
 reset_lr=0
 
 embedding_dim=128
@@ -19,7 +19,7 @@ residual_layers=6
 residual_hiddens=512
 vqvae_loss=mse
 
-lad_alpha=0.15
+lad_alpha=0.2
 walk_steps=20
 
 num_workers=8
