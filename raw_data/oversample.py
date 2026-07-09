@@ -90,4 +90,5 @@ reverse_mapping = {
     2: 'non-neoplastic',
     1: 'malignant'
 }
+df_aug_fitz['three_partition_label'] = df_aug_fitz['three_partition_label'].map(reverse_mapping)
 df_aug_fitz.to_csv("Fitzpatrick17k_train_augm.csv",index=False)
