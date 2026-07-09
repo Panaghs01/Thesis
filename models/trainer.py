@@ -431,6 +431,8 @@ class Trainer():
             self.net_pred = self.net(vqvae_out)
             adv_walk, _ = self.adversarial_walk(vqvae_out,steps=self.walk_steps,a=self.alpha)
             self.perturbation = self.vqvae.decoder(adv_walk)
+        elif self.train == 'standard':
+            self.net_pred = self.net(batch['image'].to(self.device))
 
     def _backward(self):
 
