@@ -4,7 +4,7 @@ gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=32
+batch_size=64
 lr=1e-3
 lr_policy=linear
 max_epochs=500
