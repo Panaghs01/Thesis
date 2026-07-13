@@ -35,9 +35,11 @@ class Trainer():
         self.train = args.train
         self.device = torch.device("cuda:%s" % args.gpu_ids[0] if torch.cuda.is_available() and len(args.gpu_ids)>0
                                    else "cpu")
-        self.fine_tune_patience = args.fine_tune_patience
 
+        self.fine_tune_delta = args.fine_tune_delta    
+        self.fine_tune_patience = args.fine_tune_patience
         self.patience = 0
+
         self.net.to(self.device)
 
         # Learning rate and Beta1 for Adam optimizers
@@ -313,6 +315,8 @@ class Trainer():
                 m = len(self.dataloaders['val'])
 
             imps, est = self._timer_update()
+
+            ##### MESSAGE #####
             if np.mod(self.batch_id, 100) == 1:
                 if self.train == 'strong_classifier' or 'standard':
                     message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f, running_EO: %.5f,' \
@@ -347,8 +351,11 @@ class Trainer():
                 self._visualize_perturbations(vis_input,vis_perturbation)
                 return
 
-            if not self.train == 'vqvae':
+            if self.train in ['strong_classifier','classifier']:
                 vis_perturbation = utils.make_numpy_grid(self.perturbation[:16])
+                vis_pred = self._visualize_pred(self.batch['image'][:16])
+
+            if self.train == 'standard':
                 vis_pred = self._visualize_pred(self.batch['image'][:16])
 
             else:
@@ -441,7 +448,7 @@ class Trainer():
         if self.train == 'vqvae':
             gt = self.batch['image'].to(self.device).float()
             self.loss = self._pxl_loss(self.net_pred.float(), gt)  + self.vq_loss
-        elif self.train == 'strong_classifier' or self.train == 'classifier':
+        elif self.train in ['strong_classifier','classifier','standard']:
             gt = self.batch['label'].to(self.device).long()
             self.loss = self._pxl_loss(self.net_pred.float(), gt)
         

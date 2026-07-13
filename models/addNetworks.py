@@ -127,6 +127,8 @@ class base_resnet18(Base_Grad_model):
         self.gradients = None
 
     def forward(self, x):
+        x.requires_grad_()
+
         x = self.features_conv(x)
 
         h = x.register_hook(self.activations_hook)

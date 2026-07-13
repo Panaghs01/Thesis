@@ -74,6 +74,8 @@ if __name__ == '__main__':
     parser.add_argument('--lad_alpha',default=0.2,type=float,help='Perturbation intensity')
     parser.add_argument('--walk_steps',default=10,type=int,help='Adversarial walk step count')
     parser.add_argument('--fine_tune_patience',default=5,type=int,help='After these epochs model will train all layers')
+    parser.add_argument('--fine_tune_delta',default=0.01,type=float)
+
     args = parser.parse_args()
     
     print(args.gpu_ids)
