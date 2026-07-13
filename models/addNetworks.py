@@ -30,7 +30,7 @@ def define_net(args):
             classifier_ckpt = simple_classifier.model(in_channels=in_channels, num_classes=args.n_class)
         else:
             raise FileNotFoundError("Pre-trained VQ-VAE encoder not found. Please train the VQ-VAE first.")
-    elif args.train == 'strong_classifier':
+    elif args.train == 'strong_classifier' or 'standard':
         if os.path.exists(f"{args.best_ckpts}/best_ckpt_classifier.pt") and os.path.exists(f"{args.best_ckpts}/best_ckpt_vqvae.pt"):
             print("Loading models...")
             checkpoint_vq = torch.load(f"{args.best_ckpts}/best_ckpt_vqvae.pt")

@@ -23,9 +23,9 @@ lad_alpha=0.2
 walk_steps=20
 
 num_workers=8
-project_name=lad_tests
+project_name=lad_tests_1
 data_name=Fitzpatrick17k
-train=strong_classifier
+train=standard
 
 python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --img_size ${img_size} --batch_size ${batch_size} --lr ${lr} \

@@ -35,13 +35,15 @@ class Trainer():
         self.train = args.train
         self.device = torch.device("cuda:%s" % args.gpu_ids[0] if torch.cuda.is_available() and len(args.gpu_ids)>0
                                    else "cpu")
+        self.fine_tune_patience = args.fine_tune_patience
 
+        self.patience = 0
         self.net.to(self.device)
 
         # Learning rate and Beta1 for Adam optimizers
         self.lr = args.lr
 
-        if args.train == 'strong_classifier':
+        if args.train == 'strong_classifier' or 'standard':
             self._freeze_model()
         elif args.train == 'vqvae':
             self.net = self.vqvae
@@ -97,7 +99,7 @@ class Trainer():
         self.vis_dir = args.vis_dir
 
         # define the loss functions
-        if self.train == 'strong_classifier' or self.train == 'classifier':
+        if self.train in ['strong_classifier','classifier','standard']:
             self._pxl_loss = nn.CrossEntropyLoss()
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
@@ -130,7 +132,7 @@ class Trainer():
             # load the entire checkpoint
             try:
                 checkpoint = torch.load(os.path.join(self.checkpoint_dir, ckpt_name),
-                                        map_location=self.device)
+                                        map_location=self.device,weights_only=False)
             except Exception as e:
                 self.logger.write('Error occurred while loading checkpoint: %s\n' % str(e))
                 return
@@ -141,7 +143,7 @@ class Trainer():
                 self.vqvae.load_state_dict(checkpoint['vqvae_state_dict'])
             elif self.train == 'classifier':
                 self.classifier.load_state_dict(checkpoint['classifier_state_dict'])
-            elif self.train == 'strong_classifier':
+            elif self.train == 'strong_classifier' or 'standard':
                 self.net.load_state_dict(checkpoint['model_strong_state_dict'])
             self.optimizer.load_state_dict(checkpoint['net_optimizer_state_dict'])
             self.exp_lr_scheduler.load_state_dict(
@@ -201,7 +203,7 @@ class Trainer():
 
     def _visualize_pred(self,imgs):
         imgs = imgs.to(self.device)
-        if self.train == 'strong_classifier':
+        if self.train == 'strong_classifier' or 'standard':
             gradients = self.net.get_activations_gradient()
             pooled_gradients = torch.mean(gradients,dim=[0,2,3])
             activations = self.net.get_activations(imgs).detach()
@@ -303,7 +305,7 @@ class Trainer():
         
         if not self.train == 'vqvae':
             running_acc = self._update_metric()
-            if self.train == 'strong_classifier':
+            if self.train == 'strong_classifier' or 'standard':
                 running_fairness = self._update_fairness()
 
             m = len(self.dataloaders['train'])
@@ -312,7 +314,7 @@ class Trainer():
 
             imps, est = self._timer_update()
             if np.mod(self.batch_id, 100) == 1:
-                if self.train == 'strong_classifier':
+                if self.train == 'strong_classifier' or 'standard':
                     message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f, running_EO: %.5f,' \
                     ' running_DI: %.5f, running_AP: %.5f\n' %\
                             (self.is_training, self.epoch_id, self.max_num_epochs-1, self.batch_id, m,
@@ -374,7 +376,7 @@ class Trainer():
             plt.imsave(file_name, vis)
 
     def _collect_epoch_states(self):
-        if self.train == 'strong_classifier' or self.train == 'classifier':
+        if self.train in ['strong_classifier','classifier','standard']:
             scores = self.running_metric.get_scores()
             self.epoch_acc = scores['mf1']
             self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n' %
@@ -459,7 +461,7 @@ class Trainer():
             if self.train == 'classifier':
                 self.vqvae.eval()
                 self.vqvae.to(self.device)
-            if self.train == 'strong_classifier':
+            if self.train == 'strong_classifier' or 'standard':
                 self.vqvae.eval()
                 self.vqvae.to(self.device)
                 self.classifier.eval()
@@ -468,6 +470,8 @@ class Trainer():
             self.logger.write('lr: %0.7f\n' % self.optimizer.param_groups[0]['lr'])
 
             for self.batch_id, batch in enumerate(self.dataloaders['train'], 0):
+
+
                 self._forward_pass(batch)               
                 # update G
                 self._backward()
@@ -478,7 +482,6 @@ class Trainer():
                 else:
                     self.optimizer.step()
                     self.optimizer.zero_grad()
-
 
                 self._collect_running_batch_states()
                 self._timer_update()
@@ -508,6 +511,8 @@ class Trainer():
                 self._collect_running_batch_states()
             self._collect_epoch_states()
 
+            if self.train == 'strong_classifier' or 'standard':
+                self._check_patience()
             ########### Update_Checkpoints ###########
             ##########################################
             self._update_val_acc_curve()
@@ -522,3 +527,17 @@ class Trainer():
     def _freeze_model(self):
         for param in self.net.features_conv.parameters():
             param.requires_grad = False
+
+    def _fine_tune_model(self):
+        # Unfreeze all feature layers for fine-tuning
+        for param in self.net.features_conv.parameters():
+            param.requires_grad = True
+
+    def _check_patience(self):
+        if (self.epoch_acc < self.best_val_acc + self.fine_tune_delta) and self.patience < self.fine_tune_patience: 
+            self.patience += 1
+        else :
+            self.patience = 0
+        if self.patience == self.fine_tune_patience:
+            self.patience = 999
+            self._fine_tune_model()

@@ -6,6 +6,7 @@ data
 checkpoint*
 
 __pycache__
+*.toml
 .venv
 old_models
 vis
