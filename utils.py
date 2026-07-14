@@ -3,7 +3,9 @@ import numpy as np
 
 import data_config
 from datasets.SkinCancerData import Fitzpatrick
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader,WeightedRandomSampler
+
+from sklearn.utils.class_weight import compute_class_weight
 
 from torchvision import utils
 
@@ -39,7 +41,7 @@ def get_dataloaders(args):
     datasets = {'train': training_set, 'val': val_set}
 
     dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
-                                 , shuffle=True, num_workers=args.num_workers) 
+                                 , num_workers=args.num_workers, sampler=get_weighted_sampler(datasets[x])) 
                                  for x in ['train', 'val']}
     
     return dataloaders
@@ -51,3 +53,51 @@ def make_numpy_grid(tensor_data, pad_value=0,padding=0):
     if vis.shape[2] == 1:
         vis = np.stack([vis, vis, vis], axis=-1)
     return vis
+
+def get_weighted_sampler(dataset):
+    """
+    Return a WeightedRandomSampler that balances the binary classes
+    (benign vs malignant) derived from a three‑partition label column.
+
+    Parameters
+    ----------
+    dataset : torch.utils.data.Dataset
+        Must expose a pandas DataFrame in `dataset.df` that has a column
+        called ``three_partition_label`` with the values:
+            * 'benign'
+            * 'non-neoplastic'   → treated as benign
+            * 'malignant'
+
+    Returns
+    -------
+    torch.utils.data.WeightedRandomSampler
+        Sampler that samples each example with probability
+        proportional to the inverse class frequency.
+    """
+
+    three_labels = dataset.df['three_partition_label']
+
+    flattened = three_labels.replace({'non-neoplastic': 'benign'})
+
+
+
+    label_to_idx = {'benign': 0, 'malignant': 1}
+    numeric = flattened.map(label_to_idx).values.astype(np.int64)
+
+
+    class_counts = np.bincount(numeric)          # shape: [2]
+
+
+    class_weights = 1.0 / class_counts.astype(np.float32)
+
+
+
+    sample_weights = class_weights[numeric]
+
+    # 7. Create and return the sampler
+    sampler = WeightedRandomSampler(
+        weights=sample_weights,
+        num_samples=len(sample_weights),      # total number of samples to draw
+        replacement=True
+    )
+    return sampler
