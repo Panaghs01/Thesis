@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 from torchvision.utils import make_grid
 from argparse import ArgumentParser
 import os
+import utils
 
 import ColorMnist
 from models import vq_vae
@@ -14,7 +15,11 @@ from models import simple_classifier
 import SkinCancerData
 import resnet
 
+def train():
+    pass
 
+def test():
+    pass
 
 def imshow(img):
     img = img / 2 + 0.5  # unnormalize
