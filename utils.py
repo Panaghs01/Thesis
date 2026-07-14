@@ -94,7 +94,6 @@ def get_weighted_sampler(dataset):
 
     sample_weights = class_weights[numeric]
 
-    # 7. Create and return the sampler
     sampler = WeightedRandomSampler(
         weights=sample_weights,
         num_samples=len(sample_weights),      # total number of samples to draw
