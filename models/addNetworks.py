@@ -122,8 +122,7 @@ class base_resnet18(Base_Grad_model):
 
         in_features = res.fc.in_features
         self.classifier = nn.Linear(in_features, n_classes)
-
-
+        self.dropout = nn.Dropout(p=0.5)
         self.gradients = None
 
     def forward(self, x):
@@ -135,6 +134,7 @@ class base_resnet18(Base_Grad_model):
             
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
+        x = self.dropout(x)
         x = self.classifier(x)
         return x
     
@@ -150,6 +150,7 @@ class base_efficientnet_b0(Base_Grad_model):
         self.avg_pool = eff.avgpool
         eff.classifier[1].out_features = n_classes
         self.classifier = eff.classifier
+        self.dropout = nn.Dropout(p=0.5)
         self.gradients = None
 
     def forward(self, x):
@@ -160,6 +161,7 @@ class base_efficientnet_b0(Base_Grad_model):
         x = F.relu(x, inplace=False) # Use False to avoid gradient issues
         x = self.avg_pool(x)
         x = torch.flatten(x, 1)
+        x = self.dropout(x)
         x = self.classifier(x)
         return x
 
@@ -171,6 +173,7 @@ class base_densenet121(Base_Grad_model):
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         dn.classifier.out_features = n_classes
         self.classifier = dn.classifier
+        self.dropout = nn.Dropout(p=0.5)
         self.gradients = None
 
 
@@ -182,5 +185,6 @@ class base_densenet121(Base_Grad_model):
         x = F.relu(x, inplace=False) # Use False to avoid gradient issues
         x = self.avg_pool(x)
         x = torch.flatten(x, 1)
+        x = self.dropout(x)
         x = self.classifier(x)
         return x
