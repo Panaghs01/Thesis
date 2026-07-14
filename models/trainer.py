@@ -59,8 +59,14 @@ class Trainer():
                                           lr=self.lr, momentum=0.9,
                                             weight_decay=5e-4)
         elif args.optimizer == 'adam':
-            self.optimizer = optim.AdamW(self.net.parameters(),
-                                           lr=self.lr)
+            if self.train in ['standard','strong_classifier']:
+                self.optimizer = optim.AdamW([
+                    {'params':self.net.classifier.parameters(), 'lr':self.lr *10},
+                    {'params':self.net.features_conv.parameters(), 'lr':self.lr}
+                ])
+            else:
+                self.optimizer = optim.AdamW(self.net.parameters(),
+                                           lr=self.lr,weight_decay=5e-4)
 
 
 
@@ -102,7 +108,7 @@ class Trainer():
 
         # define the loss functions
         if self.train in ['strong_classifier','classifier','standard']:
-            self._pxl_loss = nn.CrossEntropyLoss()
+            self._pxl_loss = nn.CrossEntropyLoss(weight=torch.tensor([args.class_weight,1-args.class_weight],device=self.device))
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
                 self._pxl_loss = nn.MSELoss()
@@ -187,11 +193,17 @@ class Trainer():
         self.logger.write('\n')
 
         # update the best model (based on eval acc)
-        if self.loss < self.best_loss:
-            self.best_loss = self.loss
-            self.best_epoch_id = self.epoch_id
-            self.best_val_acc = self.epoch_acc
-            self._save_checkpoint(ckpt_name=f"best_ckpt_{self.train}.pt")
+        if self.train == 'vqvae':
+            if self.loss < self.best_loss:
+                self.best_loss = self.loss
+                self.best_epoch_id = self.epoch_id
+                self.best_val_acc = self.epoch_acc
+                self._save_checkpoint(ckpt_name=f"best_ckpt_{self.train}.pt")
+        else:
+            if self.epoch_acc > self.best_val_acc:
+                self.best_epoch_id = self.epoch_id
+                self.best_val_acc = self.epoch_acc
+                self._save_checkpoint(ckpt_name=f"best_ckpt_{self.train}.pt")
             self.logger.write("*"*10+'Best model updated!\n')
             self.logger.write('\n')
 
@@ -319,7 +331,7 @@ class Trainer():
             ##### MESSAGE #####
             if np.mod(self.batch_id, 100) == 1:
                 if self.train == 'strong_classifier' or 'standard':
-                    message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f, running_EO: %.5f,' \
+                    message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f,running_EO: %.5f,' \
                     ' running_DI: %.5f, running_AP: %.5f\n' %\
                             (self.is_training, self.epoch_id, self.max_num_epochs-1, self.batch_id, m,
                             imps*self.batch_size, est,
@@ -386,8 +398,10 @@ class Trainer():
         if self.train in ['strong_classifier','classifier','standard']:
             scores = self.running_metric.get_scores()
             self.epoch_acc = scores['mf1']
-            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n' %
-                (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc))
+            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n \
+                F1_benign= %.5f, F1_malignant: %.5f\n' %
+                (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc, \
+                    scores['F1_0'], scores['F1_1']))
         elif self.train == 'vqvae':
             self.logger.write('Is_training: %s. Epoch %d / %d, epoch_VQ_loss= %.5f\n' %
                 (self.is_training, self.epoch_id, self.max_num_epochs-1, self.loss.item()))
