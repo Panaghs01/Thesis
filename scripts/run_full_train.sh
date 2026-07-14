@@ -23,7 +23,7 @@ lad_alpha=0.2
 walk_steps=20
 
 num_workers=8
-project_name=lad_tests_1
+project_name=lad_tests_4
 data_name=Fitzpatrick17k
 train=standard
 

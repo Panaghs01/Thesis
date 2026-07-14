@@ -62,7 +62,7 @@ print(f"patrick < 3 and malignant: {count_mal_patr.iloc[0]}")
 
 malignant = df[df['three_partition_label'] == 1]
 
-malignant_after = oversample(df,"three_partition_label",sample_size_frac=7.0)
+malignant_after = oversample(df,"three_partition_label",sample_size_frac=3.0)
 print(malignant.count().iloc[0],malignant_after.count().iloc[0])
 
 df_aug_mal = pd.concat([malignant_after,df])
@@ -91,4 +91,6 @@ reverse_mapping = {
     1: 'malignant'
 }
 df_aug_fitz['three_partition_label'] = df_aug_fitz['three_partition_label'].map(reverse_mapping)
-#df_aug_fitz.to_csv("Fitzpatrick17k_train.csv",index=False)
+
+print(df_aug_fitz['three_partition_label'].value_counts())
+df_aug_fitz.to_csv("Fitzpatrick17k_train.csv",index=False)
