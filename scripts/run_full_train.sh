@@ -4,9 +4,9 @@ gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=64
+batch_size=32
 lr=1e-3
-lr_policy=linear
+lr_policy=plateau
 max_epochs=500
 optimizer=adam
 reset_lr=0
@@ -23,7 +23,7 @@ lad_alpha=0.2
 walk_steps=20
 
 num_workers=8
-project_name=lad_tests_4
+project_name=lad_tests_5
 data_name=Fitzpatrick17k
 train=standard
 

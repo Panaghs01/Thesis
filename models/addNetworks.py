@@ -81,6 +81,8 @@ def get_scheduler(optimizer, args):
         step_size = args.max_epochs // 3
         # args.lr_decay_iters
         scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
+    elif args.lr_policy == 'plateau':
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=10)
     else:
         return NotImplementedError('learning rate policy [%s] is not implemented' % args.lr_policy)
     return scheduler
@@ -135,7 +137,7 @@ class base_resnet18(Base_Grad_model):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.dropout(x)
-        x = self.classifier(x)
+        x = self.dropout(self.classifier(x))
         return x
     
         

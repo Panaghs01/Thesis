@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--split_val', default="val", type=str)
 
     parser.add_argument('--img_size', default=224, type=int)
-    parser.add_argument('--class_weight',default=0.3,type=float,help='Subtract from 1 to get class 1 weight.')
+    parser.add_argument('--class_weight',default=0.2,type=float,help='Subtract from 1 to get class 1 weight.')
 
     # model
     parser.add_argument('--n_class', default=2, type=int)

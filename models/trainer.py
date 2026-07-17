@@ -131,7 +131,10 @@ class Trainer():
             os.mkdir(self.vis_dir)
 
     def _update_lr_schedulers(self):
-        self.exp_lr_scheduler.step()
+        if isinstance(self.exp_lr_scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+            self.exp_lr_scheduler.step(self.epoch_acc)
+        else:
+            self.exp_lr_scheduler.step()
 
     def _load_checkpoint(self, ckpt_name='last_ckpt.pt'):
 
@@ -192,7 +195,7 @@ class Trainer():
         self.logger.write(message)
         self.logger.write('\n')
 
-        # update the best model (based on eval acc)
+        # update the [best model] (based on eval acc)
         if self.train == 'vqvae':
             if self.loss < self.best_loss:
                 self.best_loss = self.loss
@@ -532,7 +535,7 @@ class Trainer():
                 self._collect_running_batch_states()
             self._collect_epoch_states()
 
-            if self.train == 'strong_classifier' or 'standard':
+            if self.train in ['strong_classifier', 'standard']:
                 self._check_patience()
             ########### Update_Checkpoints ###########
             ##########################################
@@ -560,5 +563,6 @@ class Trainer():
         else :
             self.patience = 0
         if self.patience == self.fine_tune_patience:
+            print("\n\n\n"+10*"*"+"Finetuning")
             self.patience = 999
             self._fine_tune_model()
