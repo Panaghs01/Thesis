@@ -82,7 +82,7 @@ def get_scheduler(optimizer, args):
         # args.lr_decay_iters
         scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
     elif args.lr_policy == 'plateau':
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=10)
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=15,min_lr=1e-8)
     else:
         return NotImplementedError('learning rate policy [%s] is not implemented' % args.lr_policy)
     return scheduler

@@ -5,7 +5,7 @@ checkpoint_root=checkpoint_test
 
 img_size=224
 batch_size=32
-lr=1e-3
+lr=1e-4
 lr_policy=plateau
 max_epochs=500
 optimizer=adam
@@ -23,7 +23,7 @@ lad_alpha=0.2
 walk_steps=20
 
 num_workers=8
-project_name=lad_tests_5
+project_name=standard_training_2
 data_name=Fitzpatrick17k
 train=standard
 

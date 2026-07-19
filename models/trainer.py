@@ -491,7 +491,7 @@ class Trainer():
                 self.classifier.eval()
                 self.classifier.to(self.device)
             # Iterate over data.
-            self.logger.write('lr: %0.7f\n' % self.optimizer.param_groups[0]['lr'])
+            self.logger.write('lr: %0.8f\n' % self.optimizer.param_groups[0]['lr'])
 
             for self.batch_id, batch in enumerate(self.dataloaders['train'], 0):
 
