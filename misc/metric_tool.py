@@ -63,16 +63,27 @@ class ConfuseMatrixMeter(AverageMeter):
     
 class FairnessMeter(AverageMeter):
     """Computes and stores the average and current value"""
-    def __init__(self, n_class):
+    def __init__(self, n_class,positive_class=1):
         super(FairnessMeter, self).__init__()
         self.n_class = n_class
+        self.positive_class = positive_class
+        self.initialized = False
+        self.sum_prot = None
+        self.sum_unprot = None
 
     def update_cm(self, pr_prot, gt_prot, pr_unprot, gt_unprot, weight=1):
         val_unprot = get_confuse_matrix(num_classes=self.n_class, label_gts=gt_unprot, label_preds=pr_unprot)
         val_prot = get_confuse_matrix(num_classes=self.n_class, label_gts=gt_prot, label_preds=pr_prot)
-        self.update(val_prot, weight)
-        current_score = cm2fairness(val_prot, val_unprot)
-        return current_score
+        if not self.initialized:
+            self.sum_prot = val_prot
+            self.sum_unprot = val_unprot
+            self.initialized = True
+        else:
+            self.sum_prot += val_prot
+            self.sum_unprot += val_unprot
+
+        # Return fairness for the current batch
+        return cm2fairness(val_prot, val_unprot, self.positive_class)
 
     def get_scores(self):
         scores_dict = cm2score(self.sum)
@@ -106,23 +117,39 @@ def cm2F1(confusion_matrix):
     mean_F1 = np.nanmean(F1)
     return mean_F1
 
-def cm2fairness(confusion_matrix_prot,confusion_matrix_unprot):
+def cm2fairness(confusion_matrix_prot,confusion_matrix_unprot,positive_class=1):
     
+    eps = np.finfo(np.float32).eps
+
     tp_prot = np.diag(confusion_matrix_prot)
     tp_unprot = np.diag(confusion_matrix_unprot)
-    success_prot = confusion_matrix_prot.sum(axis=1)[1]
-    success_unprot = confusion_matrix_unprot.sum(axis=1)[1]
+
+    ### ACCURACY PARITY AP ###
+
+    acc_prot = tp_prot.sum() / (confusion_matrix_prot.sum() + eps)
+    acc_unprot = tp_unprot.sum() / (confusion_matrix_unprot.sum() + eps)
+    ap = acc_prot / (acc_unprot + eps)
+
+    ### DISPARATE IMPACT DI ###
+
+    success_prot = confusion_matrix_prot.sum(axis=0)[positive_class]
+    success_unprot = confusion_matrix_unprot.sum(axis=0)[positive_class]
     
     full_prot = confusion_matrix_prot.sum()
     full_unprot = confusion_matrix_unprot.sum()
 
-    eo = (tp_prot.sum() / full_prot) / (tp_unprot.sum() / full_unprot + np.finfo(np.float32).eps)
+    di = (success_prot / full_prot) / (success_unprot / full_unprot + eps)
 
-    di = (success_prot / full_prot) / (success_unprot / full_unprot + np.finfo(np.float32).eps)
+    ### EQUAL OPPORTUNITY EO ###
 
-    acc_prot = tp_prot.sum() / (confusion_matrix_prot.sum() + np.finfo(np.float32).eps)
-    acc_unprot = tp_unprot.sum() / (confusion_matrix_unprot.sum() + np.finfo(np.float32).eps)
-    ap = acc_prot / (acc_unprot + np.finfo(np.float32).eps)
+    pos_prot = confusion_matrix_prot.sum(axis=1)[positive_class]
+    pos_unprot = confusion_matrix_unprot.sum(axis=1)[positive_class]
+
+    tp_class_prot = confusion_matrix_prot[positive_class, positive_class]
+    tp_class_unprot = confusion_matrix_unprot[positive_class, positive_class]
+
+    eo = (tp_class_prot / (pos_prot + eps)) / (tp_class_unprot / pos_unprot + eps)
+
 
     return {
         'EO': eo,
