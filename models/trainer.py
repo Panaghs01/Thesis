@@ -368,14 +368,15 @@ class Trainer():
 
             if self.train in ['strong_classifier','classifier']:
                 vis_perturbation = utils.make_numpy_grid(self.perturbation[:16])
+                self._visualize_perturbations(vis_input,vis_perturbation)
                 vis_pred = self._visualize_pred(self.batch['image'][:16])
 
-            if self.train == 'standard':
+            elif self.train == 'standard':
                 vis_pred = self._visualize_pred(self.batch['image'][:16])
 
             else:
                 vis_pred = utils.make_numpy_grid(self.net_pred[:16])
-
+            
             vis = np.concatenate([vis_input, vis_pred], axis=0)
             vis = np.clip(vis, a_min=0.0, a_max=1.0)
 

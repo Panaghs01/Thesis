@@ -92,6 +92,7 @@ if __name__ == '__main__':
     args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints')
 
     os.makedirs(args.checkpoint_dir, exist_ok=True)
+    os.makedirs(args.best_ckpts, exist_ok=True)
     #  visualize dir
     args.vis_dir = os.path.join('vis', args.project_name, args.train)
     os.makedirs(args.vis_dir, exist_ok=True)
