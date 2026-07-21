@@ -5,6 +5,7 @@ import os
 import cv2 
 import utils
 import matplotlib.pyplot as plt
+import shap
 
 from misc.logger_tool import *
 from misc.metric_tool import *
@@ -39,6 +40,9 @@ class Trainer():
         self.fine_tune_delta = args.fine_tune_delta    
         self.fine_tune_patience = args.fine_tune_patience
         self.patience = 0
+
+        if self.train == 'strong_classifier':
+            self.lad = True
 
         self.net.to(self.device)
 
@@ -565,3 +569,42 @@ class Trainer():
             print("\n\n\n"+10*"*"+"Finetuning")
             self.patience = 999
             self._fine_tune_model()
+    
+    def _get_background(self,loader,samples=100,lad=False):
+        imgs = []
+
+        for batch in loader:
+
+            if lad:
+                x = batch['image'].to(self.device)
+
+                z = self.vqvae.encoder(x)
+                z = self.vqvae.pre_vq_conv(z)
+
+                adv_walk, _ = self.adversarial_walk(
+                    z,
+                    steps=self.walk_steps,
+                    a=self.alpha
+                )
+
+                perturb = self.vqvae.decoder(adv_walk)
+
+                imgs.append(perturb)
+            else:
+                imgs.append(batch['image'])
+
+            if sum(x.shape[0] for x in imgs) >= samples:
+                break
+        
+        return torch.cat(imgs,dim=0)[:samples]
+
+    def _get_shap_values(self):
+
+        background = self._get_background(self.dataloaders['train'],samples=100,lad=self.lad)
+        tests = self._get_background(self.dataloaders['val'],samples=4,lad=self.lad)
+        explainer = shap.GradientExplainer(self.net,background)
+
+        shap_values = explainer.shap_values(tests)
+
+        shap.image_plot(shap_values,tests)
+
