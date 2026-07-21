@@ -10,20 +10,16 @@ class model(nn.Module):
         super(model,self).__init__()
         
         self.fc1 = nn.Linear(in_channels, 1024)
-        self.bn1 = nn.BatchNorm1d(1024)
         self.fc2 = nn.Linear(1024,512)
-        self.bn2 = nn.BatchNorm1d(512)
         self.fc3 = nn.Linear(512,128)
-        self.bn3 = nn.BatchNorm1d(128)
         self.fc4 = nn.Linear(128,num_classes)
-        self.dropout = nn.Dropout(0.5)
         
     def forward(self,x):
         x = torch.flatten(x,1)
 
-        x = F.relu(self.dropout(self.bn1(self.fc1(x))))
-        x = F.relu(self.dropout(self.bn2(self.fc2(x))))
-        x = F.relu(self.dropout(self.bn3(self.fc3(x))))
+        x = F.elu(self.fc1(x))
+        x = F.elu(self.fc2(x))
+        x = F.elu(self.fc3(x))
         x = self.fc4(x)
 
         return x

@@ -44,13 +44,12 @@ class Trainer():
 
         # Learning rate and Beta1 for Adam optimizers
         self.lr = args.lr
-
-        if args.train == 'strong_classifier' or 'standard':
+        if args.train in ['strong_classifier','standard']:
             self._freeze_model()
         elif args.train == 'vqvae':
             self.net = self.vqvae
         elif args.train == 'classifier':
-            self.net = self.classifier
+            self.net = self.classifier.to(self.device)
             self.vqvae.to(self.device)
 
         # define optimizers
@@ -207,7 +206,7 @@ class Trainer():
                 self.best_epoch_id = self.epoch_id
                 self.best_val_acc = self.epoch_acc
                 self._save_checkpoint(ckpt_name=f"best_ckpt_{self.train}.pt")
-            self.logger.write("*"*10+'Best model updated!\n')
+                self.logger.write("*"*10+'Best model updated!\n')
             self.logger.write('\n')
 
     def _timer_update(self):
@@ -423,7 +422,6 @@ class Trainer():
             #delta = (grad - grad.mean()) / (grad.std() + e)
 
             delta = torch.sign(grad)   # really small grad due to std. Try sign
-
             h_delta = (h_delta + a*delta).detach().requires_grad_(True)
 
         _,h_delta,perplexity,_ = self.vqvae.vq(h_delta)
@@ -486,7 +484,7 @@ class Trainer():
             if self.train == 'classifier':
                 self.vqvae.eval()
                 self.vqvae.to(self.device)
-            if self.train == 'strong_classifier' or 'standard':
+            if self.train in ['strong_classifier','standard']:
                 self.vqvae.eval()
                 self.vqvae.to(self.device)
                 self.classifier.eval()
