@@ -10,7 +10,7 @@ lr_policy=plateau
 max_epochs=110
 optimizer=adam
 reset_lr=0
-class_weight=0.3
+class_weight=0.1
 
 embedding_dim=128
 num_embeddings=2048
@@ -20,11 +20,11 @@ residual_layers=6
 residual_hiddens=512
 vqvae_loss=mse
 
-lad_alpha=0.1
-walk_steps=20
+lad_alpha=0.05
+walk_steps=4
 
 num_workers=8
-project_name=retrain_classifier
+project_name=lad_test_1
 data_name=Fitzpatrick17k
 train=strong_classifier
 

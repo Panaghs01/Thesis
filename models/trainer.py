@@ -39,6 +39,7 @@ class Trainer():
 
         self.fine_tune_delta = args.fine_tune_delta    
         self.fine_tune_patience = args.fine_tune_patience
+        self.fine_tuned = False
         self.patience = 0
 
         if self.train == 'strong_classifier':
@@ -502,6 +503,7 @@ class Trainer():
                 self._forward_pass(batch)               
                 # update G
                 self._backward()
+                #print('gradient sum: ',sum(p.grad.norm().item() for p in self.net.parameters()))
                 if self.accumlation_steps > 0:
                     if (self.batch_id + 1) % self.accumlation_steps == 0:
                         self.optimizer.step()
@@ -561,14 +563,29 @@ class Trainer():
             param.requires_grad = True
 
     def _check_patience(self):
-        if (self.epoch_acc < self.best_val_acc + self.fine_tune_delta) and self.patience < self.fine_tune_patience: 
+            # Only apply to the classifier training modes.
+        if self.train not in ['strong_classifier', 'standard']:
+            return
+
+        # Do nothing if we have already fine‑tuned once.
+        if self.fine_tuned:
+            return
+
+        # Evaluate stagnation.
+        if (self.epoch_acc < self.best_val_acc + self.fine_tune_delta) \
+            and (self.patience < self.fine_tune_patience):
             self.patience += 1
-        else :
+        else:
+            # A successful epoch – reset patience.
             self.patience = 0
+
+        # Trigger fine‑tune once the patience ceiling is hit.
         if self.patience == self.fine_tune_patience:
-            print("\n\n\n"+10*"*"+"Finetuning")
-            self.patience = 999
-            self._fine_tune_model()
+            # Clear the 999 sentinel used in the old implementation.
+            print("\n\n\n" + 10*'*' + " FINETUNING!! ")
+            self._fine_tune_model()      # unfreeze all feature layers
+            self.fine_tuned = True       # prevent re‑trigger
+            self.patience = 0            # reset counter
     
     def _get_background(self,loader,samples=100,lad=False):
         imgs = []
