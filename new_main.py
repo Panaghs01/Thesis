@@ -2,6 +2,7 @@ import os
 from argparse import ArgumentParser
 from thop import profile
 
+import data_config
 import pandas as pd
 
 import utils
@@ -90,8 +91,9 @@ if __name__ == '__main__':
 
     # best checkpoints for models
     args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints')
-
-    df = pd.read_csv(os.path.join(args.root_dir, args.data_name + '_' + 'train' + '.csv'))
+    config = data_config.DataConfig().get_data_config(args.data_name)
+    root_dir = config.root_dir
+    df = pd.read_csv(os.path.join(root_dir, args.data_name + '_' + 'train' + '.csv'))
 
     ### compute class weights ###
 
