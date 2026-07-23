@@ -19,6 +19,7 @@ class Trainer():
 
         self.dataloaders = dataloaders
         self.args = args
+        self.class_weights = args.class_weights
         self.best_ckpts = args.best_ckpts
         self.lr = args.lr
         self.reset_lr = args.reset_lr
@@ -112,7 +113,8 @@ class Trainer():
 
         # define the loss functions
         if self.train in ['strong_classifier','classifier','standard']:
-            self._pxl_loss = nn.CrossEntropyLoss(weight=torch.tensor([args.class_weight,1-args.class_weight],device=self.device))
+            weight_tensor = torch.tensor(self.class_weights,dtype=torch.float32,device=self.device)
+            self._pxl_loss = nn.CrossEntropyLoss(weight=weight_tensor)
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
                 self._pxl_loss = nn.MSELoss()
@@ -410,6 +412,13 @@ class Trainer():
                 F1_benign= %.5f, F1_malignant: %.5f\n' %
                 (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc, \
                     scores['F1_0'], scores['F1_1']))
+            target = self.batch['label'].to(self.device).detach()
+            
+            pred = self.net_pred.detach()
+            pred = torch.argmax(pred,dim=1)
+
+            self.running_metric.get_cm(target.cpu().numpy(),pred.cpu().numpy())
+
         elif self.train == 'vqvae':
             self.logger.write('Is_training: %s. Epoch %d / %d, epoch_VQ_loss= %.5f\n' %
                 (self.is_training, self.epoch_id, self.max_num_epochs-1, self.loss.item()))
@@ -575,7 +584,9 @@ class Trainer():
         if (self.epoch_acc < self.best_val_acc + self.fine_tune_delta) \
             and (self.patience < self.fine_tune_patience):
             self.patience += 1
+            print("IMPATIENT")
         else:
+            print("PATIENT")
             # A successful epoch – reset patience.
             self.patience = 0
 

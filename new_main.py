@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser
 from thop import profile
 
-
+import pandas as pd
 
 import utils
 from models.trainer import Trainer
@@ -91,6 +91,17 @@ if __name__ == '__main__':
     # best checkpoints for models
     args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints')
 
+    df = pd.read_csv(os.path.join(args.root_dir, args.data_name + '_' + 'train' + '.csv'))
+
+    ### compute class weights ###
+
+    class_counts = df["three_partition_label"].value_counts().sort_index().values
+    total_samples = len(df)
+    computed_weights = total_samples / (len(class_counts) * class_counts)
+
+    args.class_weights = computed_weights.tolist()
+
+    ###-----------------------###
     os.makedirs(args.checkpoint_dir, exist_ok=True)
     os.makedirs(args.best_ckpts, exist_ok=True)
     #  visualize dir

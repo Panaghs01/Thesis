@@ -61,6 +61,11 @@ class ConfuseMatrixMeter(AverageMeter):
         scores_dict = cm2score(self.sum)
         return scores_dict
     
+    def get_cm(self,gt,pr):
+        val = get_confuse_matrix(num_classes=self.n_class,label_gts=gt,label_preds=pr)
+        print(val)
+    
+    
 class FairnessMeter(AverageMeter):
     """Computes and stores the average and current value"""
     def __init__(self, n_class,positive_class=1):
@@ -88,6 +93,8 @@ class FairnessMeter(AverageMeter):
     def get_scores(self):
         scores_dict = cm2score(self.sum)
         return scores_dict
+    
+
 
 def harmonic_mean(xs):
     harmonic_mean = len(xs) / sum((x+1e-6)**-1 for x in xs)
