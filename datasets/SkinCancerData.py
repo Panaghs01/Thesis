@@ -30,7 +30,11 @@ class CustomDataset(Dataset):
     def __getitem__(self, index):
         path = os.path.join(str(self.path) + self.mode + '/' + str(self.csv.iloc[index].iloc[0] + '.jpg'))
         image = Image.open(path).convert("RGB")  # Ensure image is RGB
-        label = 1 if self.csv.iloc[index].iloc[5] == 'malignant' else 0
+        map = {'benign':0,
+               'malignant':1,
+               'non-neoplastic':2   
+            }
+        self.csv["three_partition_label"] = self.csv["three_partition_label"].map(map)
         if self.transform:
             image = self.transform(image)
             

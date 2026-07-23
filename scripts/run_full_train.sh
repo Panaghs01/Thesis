@@ -7,7 +7,7 @@ img_size=224
 batch_size=32
 lr=1e-4
 lr_policy=plateau
-max_epochs=110
+max_epochs=30
 optimizer=adam
 reset_lr=0
 
@@ -23,9 +23,9 @@ lad_alpha=0.05
 walk_steps=4
 
 num_workers=8
-project_name=lad_test_1_samplers
+project_name=classifier_train_3class
 data_name=Fitzpatrick17k
-train=strong_classifier
+train=classifier
 
 python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --img_size ${img_size} --batch_size ${batch_size} --lr ${lr} \

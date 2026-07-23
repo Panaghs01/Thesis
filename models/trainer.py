@@ -78,8 +78,8 @@ class Trainer():
         # define lr schedulers
         self.exp_lr_scheduler = get_scheduler(self.optimizer, args)
 
-        self.running_metric = ConfuseMatrixMeter(n_class=2)
-        self.running_fairness = FairnessMeter(n_class=2)
+        self.running_metric = ConfuseMatrixMeter(n_class=self.n_class)
+        self.running_fairness = FairnessMeter(n_class=self.n_class)
 
         # define logger file
         logger_path = os.path.join(args.checkpoint_dir, 'log.txt')
@@ -407,11 +407,19 @@ class Trainer():
     def _collect_epoch_states(self):
         if self.train in ['strong_classifier','classifier','standard']:
             scores = self.running_metric.get_scores()
+            fairness = self.running_fairness.get_scores()
             self.epoch_acc = scores['mf1']
-            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n \
-                F1_benign= %.5f, F1_malignant: %.5f\n' %
+            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n'\
+                              'F1_benign= %.5f, F1_malignant: %.5f\n' %
                 (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc, \
                     scores['F1_0'], scores['F1_1']))
+            
+            self.logger.write(
+                f"Is_training:{self.is_training}. Epoch {self.epoch_id}/{self.max_num_epochs-1} "
+                f"epoch_EO={fairness['epoch_EO']:.4f}, epoch_DI={fairness['epoch_DI']:.4f}, epoch_AP={fairness['epoch_AP']:.4f}, "
+                f"avg_EO={fairness['avg_EO']:.4f}, avg_DI={fairness['avg_DI']:.4f}, avg_AP={fairness['avg_AP']:.4f}\n"
+            )
+
             target = self.batch['label'].to(self.device).detach()
             
             pred = self.net_pred.detach()
@@ -452,6 +460,7 @@ class Trainer():
 
     def _clear_cache(self):
         self.running_metric.clear()
+        self.running_fairness.clear()
 
     def _forward_pass(self,batch):
         self.batch = batch

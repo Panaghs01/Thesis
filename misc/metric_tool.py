@@ -76,25 +76,64 @@ class FairnessMeter(AverageMeter):
         self.sum_prot = None
         self.sum_unprot = None
 
+        self.batch_metrics = {
+            "EO": AverageMeter(),
+            "DI": AverageMeter(),
+            "AP": AverageMeter()
+        }
+
     def update_cm(self, pr_prot, gt_prot, pr_unprot, gt_unprot, weight=1):
         val_unprot = get_confuse_matrix(num_classes=self.n_class, label_gts=gt_unprot, label_preds=pr_unprot)
         val_prot = get_confuse_matrix(num_classes=self.n_class, label_gts=gt_prot, label_preds=pr_prot)
+
         if not self.initialized:
             self.sum_prot = val_prot
             self.sum_unprot = val_unprot
             self.initialized = True
-        else:
-            self.sum_prot += val_prot
-            self.sum_unprot += val_unprot
+        self.sum_prot += val_prot
+        self.sum_unprot += val_unprot
 
+
+        self.val = cm2fairness(val_prot, val_unprot, self.positive_class)
         # Return fairness for the current batch
-        return cm2fairness(val_prot, val_unprot, self.positive_class)
+
+        for metric, val in self.val.items():
+            if not np.isnan(val) and not np.isinf(val):
+                self.batch_metrics[metric].update(val, weight)
+
+        return self.val
 
     def get_scores(self):
-        scores_dict = cm2score(self.sum)
+        if not self.initialized:
+            return {
+                "epoch_EO": 0.0,
+                "epoch_DI": 0.0,
+                "epoch_AP": 0.0,
+                "avg_EO": 0.0,
+                "avg_DI": 0.0,
+                "avg_AP": 0.0,
+            }
+
+        # Calculate the true global fairness across the entire epoch matrix
+        global_fairness = cm2fairness(
+            self.sum_prot, self.sum_unprot, self.positive_class
+        )
+
+        # Pack everything into a clean logging dictionary
+        scores_dict = {}
+        for metric, global_val in global_fairness.items():
+            scores_dict[f"epoch_{metric}"] = global_val
+            scores_dict[f"avg_{metric}"] = self.batch_metrics[metric].average()
+
         return scores_dict
     
+    def clear(self):
+        super(FairnessMeter,self).clear()
+        self.sum_prot = np.zeros((self.n_class,self.n_class))
+        self.sum_unprot = np.zeros((self.n_class,self.n_class))
 
+        for meter in self.batch_metrics.values():
+            meter.clear()
 
 def harmonic_mean(xs):
     harmonic_mean = len(xs) / sum((x+1e-6)**-1 for x in xs)

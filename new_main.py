@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('--class_weight',default=0.2,type=float,help='Subtract from 1 to get class 1 weight.')
 
     # model
-    parser.add_argument('--n_class', default=2, type=int)
+    parser.add_argument('--n_class', default=3, type=int)
     parser.add_argument('--train', default="vqvae", type=str, help='strong_classifier |' \
                                 'vqvae (only train vqvae) | classifier (only train classifier)')
     parser.add_argument('--strong_classifier', default='base_resnet18', type=str,
