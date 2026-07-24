@@ -120,6 +120,7 @@ class base_resnet18(Base_Grad_model):
             res.layer4
         )
 
+        self.dropout = nn.Dropout(p=0.5)
         self.avgpool = res.avgpool
 
         in_features = res.fc.in_features
@@ -130,9 +131,10 @@ class base_resnet18(Base_Grad_model):
         x.requires_grad_()
 
         x = self.features_conv(x)
+        x = self.dropout(x)
 
         h = x.register_hook(self.activations_hook)
-            
+
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)

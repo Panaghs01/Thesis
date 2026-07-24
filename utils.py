@@ -41,7 +41,7 @@ def get_dataloaders(args):
     datasets = {'train': training_set, 'val': val_set}
 
     dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
-                                 , num_workers=args.num_workers, sampler=get_weighted_sampler(datasets[x])) 
+                                 , num_workers=args.num_workers, sampler=get_weighted_sampler(datasets[x],x)) 
                                  for x in ['train', 'val']}
     
     return dataloaders
@@ -54,7 +54,7 @@ def make_numpy_grid(tensor_data, pad_value=0,padding=0):
         vis = np.stack([vis, vis, vis], axis=-1)
     return vis
 
-def get_weighted_sampler(dataset):
+def get_weighted_sampler(dataset,split):
     """
     Return a WeightedRandomSampler that balances the binary classes
     (benign vs malignant) derived from a three‑partition label column.
@@ -74,15 +74,12 @@ def get_weighted_sampler(dataset):
         Sampler that samples each example with probability
         proportional to the inverse class frequency.
     """
-
+    if split == 'val':
+        return None
     three_labels = dataset.df['three_partition_label']
 
-    flattened = three_labels.replace({'non-neoplastic': 'benign'})
-
-
-
-    label_to_idx = {'benign': 0, 'malignant': 1}
-    numeric = flattened.map(label_to_idx).values.astype(np.int64)
+    label_to_idx = {'benign': 0, 'malignant': 1,'non-neoplastic':2}
+    numeric = three_labels.map(label_to_idx).values.astype(np.int64)
 
 
     class_counts = np.bincount(numeric)          # shape: [2]

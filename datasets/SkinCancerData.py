@@ -73,7 +73,7 @@ class Fitzpatrick(Dataset):
         return len(self.df)
 
     def __getitem__(self, index):
-        label_map = {'benign': 0,'non-neoplastic':0, 'malignant':1}
+        label_map = {'benign': 0,'non-neoplastic':2, 'malignant':1}
 
         name = self.df.iloc[index]['new_img_name']
         label = self.df.iloc[index]['three_partition_label']
