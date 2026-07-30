@@ -581,9 +581,6 @@ class Trainer():
             param.requires_grad = True
 
     def _check_patience(self):
-            # Only apply to the classifier training modes.
-        if self.train not in ['strong_classifier', 'standard']:
-            return
 
         # Do nothing if we have already fine‑tuned once.
         if self.fine_tuned:
@@ -593,16 +590,16 @@ class Trainer():
         if (self.epoch_acc < self.best_val_acc + self.fine_tune_delta) \
             and (self.patience < self.fine_tune_patience):
             self.patience += 1
-            print("IMPATIENT")
+            self.logger.write("\nIMPATIENT")
         else:
-            print("PATIENT")
+            self.logger.write("\nPATIENT")
             # A successful epoch – reset patience.
             self.patience = 0
 
         # Trigger fine‑tune once the patience ceiling is hit.
         if self.patience == self.fine_tune_patience:
             # Clear the 999 sentinel used in the old implementation.
-            print("\n\n\n" + 10*'*' + " FINETUNING!! ")
+            self.logger.write("\n\n\n" + 10*'*' + " FINETUNING!! ")
             self._fine_tune_model()      # unfreeze all feature layers
             self.fine_tuned = True       # prevent re‑trigger
             self.patience = 0            # reset counter

@@ -124,7 +124,12 @@ class base_resnet18(Base_Grad_model):
         self.avgpool = res.avgpool
 
         in_features = res.fc.in_features
-        self.classifier = nn.Linear(in_features, n_classes)
+        self.classifier = nn.Sequential(
+            nn.linear(in_features,256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.linear(256,n_classes)
+        )
         self.gradients = None
 
     def forward(self, x):
