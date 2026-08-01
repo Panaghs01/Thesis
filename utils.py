@@ -35,6 +35,9 @@ def get_dataloaders(args):
     elif data_name == 'test':
         training_set = Fitzpatrick(root_dir=root_dir, img_size=args.img_size, data_name=data_name, is_train=True, split=split)
         val_set = Fitzpatrick(root_dir=root_dir, img_size=args.img_size, data_name=data_name, is_train=True, split=split)
+    elif data_name == 'Fitzpatrick17k_balanced':
+        training_set = Fitzpatrick(root_dir=root_dir, img_size=args.img_size, data_name=data_name, is_train=True, split=split)
+        val_set = Fitzpatrick(root_dir=root_dir, img_size=args.img_size, data_name=data_name, is_train=False, split=split)
     else:
         raise TypeError('%s has not defined' % data_name)
     

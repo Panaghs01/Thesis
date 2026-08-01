@@ -65,10 +65,7 @@ class Trainer():
                                             weight_decay=5e-4)
         elif args.optimizer == 'adam':
             if self.train in ['standard','strong_classifier']:
-                self.optimizer = optim.AdamW([
-                    {'params':self.net.classifier.parameters(), 'lr':self.lr *10},
-                    {'params':self.net.features_conv.parameters(), 'lr':self.lr}
-                ],weight_decay=1e-5)
+                self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-5)
             else:
                 self.optimizer = optim.AdamW(self.net.parameters(),
                                            lr=self.lr,weight_decay=1e-5)

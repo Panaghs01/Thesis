@@ -1,13 +1,14 @@
 #!/bin/bash
+#batch norm on head + leaky relu + augmentations
 
 gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=32
-lr=1e-4
+batch_size=64
+lr=1e-3
 lr_policy=linear
-max_epochs=100
+max_epochs=200
 optimizer=adam
 reset_lr=0
 
@@ -23,8 +24,8 @@ lad_alpha=0.01
 walk_steps=4
 
 num_workers=8
-project_name=standard_test_4
-data_name=Fitzpatrick17k
+project_name=standard_test_augm_1
+data_name=Fitzpatrick17k_balanced
 train=standard
 
 fine_tune_patience=20

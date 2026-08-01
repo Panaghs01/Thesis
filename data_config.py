@@ -9,8 +9,10 @@ class DataConfig:
             self.root_dir = "./raw_data"
         elif data_name == 'test':
             self.root_dir = "./raw_data"
+        elif data_name == 'Fitzpatrick17k_balanced':
+            self.root_dir = "./raw_data"
         else:
-            raise TypeError('%s has not defined' % data_name)
+            raise TypeError('%s was not defined' % data_name)
         return self
 
 

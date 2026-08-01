@@ -107,7 +107,7 @@ class Base_Grad_model(nn.Module):
 class base_resnet18(Base_Grad_model):
     def __init__(self,n_classes):
         super(base_resnet18, self).__init__()
-        res = resnet18(weights=resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT))
+        res = resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT)
         
         self.features_conv = nn.Sequential(
             res.conv1,
@@ -120,15 +120,14 @@ class base_resnet18(Base_Grad_model):
             res.layer4
         )
 
-        self.dropout = nn.Dropout(p=0.5)
         self.avgpool = res.avgpool
 
         in_features = res.fc.in_features
         self.classifier = nn.Sequential(
-            nn.linear(in_features,256),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.linear(256,n_classes)
+            nn.Linear(in_features,256),
+            nn.LeakyReLU(inplace=True),
+            nn.BatchNorm1d(256),
+            nn.Linear(256,n_classes)
         )
         self.gradients = None
 
@@ -136,7 +135,6 @@ class base_resnet18(Base_Grad_model):
         x.requires_grad_()
 
         x = self.features_conv(x)
-        x = self.dropout(x)
 
         h = x.register_hook(self.activations_hook)
 
