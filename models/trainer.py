@@ -31,6 +31,8 @@ class Trainer():
         self.accumlation_steps = args.accumulation_steps
         self.alpha = args.lad_alpha
         self.walk_steps =args.walk_steps
+        self.regularization = args.regularization
+        self.lambda_reg = args.lambda_reg
         # define network
         self.vqvae,self.classifier = define_net(args=args)
         self.net = define_strong_net(args=args)
@@ -111,7 +113,10 @@ class Trainer():
         # define the loss functions
         if self.train in ['strong_classifier','classifier','standard']:
             weight_tensor = torch.tensor(self.class_weights,dtype=torch.float32,device=self.device)
-            self._pxl_loss = nn.CrossEntropyLoss(weight=weight_tensor)
+
+            # Removed weights from crossentropy to see if it affects overfitting
+
+            self._pxl_loss = nn.CrossEntropyLoss()
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
                 self._pxl_loss = nn.MSELoss()
@@ -518,6 +523,17 @@ class Trainer():
                 self._forward_pass(batch)               
                 # update G
                 self._backward()
+
+                            # Apply L1 regularization
+                if self.regularization == 'L1':
+                    l1_norm = sum(p.abs().sum() for p in self.net.parameters())
+                    loss += self.lambda_reg * l1_norm
+                
+                # Apply L2 regularization
+                elif self.regularization == 'L2':
+                    l2_norm = sum(p.pow(2).sum() for p in self.net.parameters())
+                    loss += self.lambda_reg * l2_norm
+
                 #print('gradient sum: ',sum(p.grad.norm().item() for p in self.net.parameters()))
                 if self.accumlation_steps > 0:
                     if (self.batch_id + 1) % self.accumlation_steps == 0:

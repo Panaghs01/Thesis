@@ -1,15 +1,15 @@
 #!/bin/bash
-#batch norm on head + leaky relu + augmentations
+#simple head + augmentations + sgd + l1 reg
 
 gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
 batch_size=64
-lr=1e-3
+lr=1e-4
 lr_policy=linear
 max_epochs=200
-optimizer=adam
+optimizer=sgd
 reset_lr=0
 
 embedding_dim=128
@@ -24,9 +24,12 @@ lad_alpha=0.01
 walk_steps=4
 
 num_workers=8
-project_name=standard_test_augm_1
+project_name=standard_test_augm_5
 data_name=Fitzpatrick17k_balanced
 train=standard
+
+regularization=l2
+lambda_reg=0.01
 
 fine_tune_patience=20
 fine_tune_delta=0.01
@@ -38,4 +41,4 @@ python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --vqvae_num_embeddings ${num_embeddings} --num_workers ${num_workers} --vqvae_embedding_dim ${embedding_dim} --vqvae_commitment_cost ${commitment_cost}\
     --vqvae_hiddens ${hiddens} --vqvae_residual_hiddens ${residual_hiddens} --vqvae_residual_layers ${residual_layers} --vqvae_residual_hiddens ${residual_hiddens}\
     --vqvae_loss ${vqvae_loss} --optimizer ${optimizer} --reset_lr ${reset_lr} --lr_policy ${lr_policy} --lad_alpha ${lad_alpha} --walk_steps ${walk_steps}\
-    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta}
+    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization}

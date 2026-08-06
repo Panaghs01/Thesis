@@ -124,10 +124,9 @@ class base_resnet18(Base_Grad_model):
 
         in_features = res.fc.in_features
         self.classifier = nn.Sequential(
-            nn.Linear(in_features,256),
-            nn.LeakyReLU(inplace=True),
-            nn.BatchNorm1d(256),
-            nn.Linear(256,n_classes)
+            nn.Linear(in_features,128),
+            nn.ReLU(inplace=True),
+            nn.Linear(128,n_classes)
         )
         self.gradients = None
 

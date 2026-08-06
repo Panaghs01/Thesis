@@ -44,6 +44,9 @@ if __name__ == '__main__':
     parser.add_argument('--img_size', default=224, type=int)
     parser.add_argument('--class_weight',default=0.2,type=float,help='Subtract from 1 to get class 1 weight.')
 
+    parser.add_argument('--lambda_reg',default=0.01,type=float)
+    parser.add_argument('--regularization',default='l1',type=str)
+
     # model
     parser.add_argument('--n_class', default=3, type=int)
     parser.add_argument('--train', default="vqvae", type=str, help='strong_classifier |' \
