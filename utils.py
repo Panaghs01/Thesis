@@ -44,7 +44,7 @@ def get_dataloaders(args):
     datasets = {'train': training_set, 'val': val_set}
 
     dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
-                                 , num_workers=args.num_workers) 
+                                 , num_workers=args.num_workers,sampler=get_weighted_sampler(datasets[x],x)) 
                                  for x in ['train', 'val']}
     
     return dataloaders

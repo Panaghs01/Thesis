@@ -6,10 +6,10 @@ checkpoint_root=checkpoint_test
 
 img_size=224
 batch_size=64
-lr=1e-4
-lr_policy=linear
+lr=1e-5
+lr_policy=plateau
 max_epochs=200
-optimizer=sgd
+optimizer=adam
 reset_lr=0
 
 embedding_dim=128
@@ -19,12 +19,13 @@ hiddens=256
 residual_layers=6
 residual_hiddens=512
 vqvae_loss=mse
+argloss=focal
 
 lad_alpha=0.01
 walk_steps=4
 
 num_workers=8
-project_name=standard_test_augm_5
+project_name=standard_test_augm_7
 data_name=Fitzpatrick17k_balanced
 train=standard
 
@@ -41,4 +42,4 @@ python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --vqvae_num_embeddings ${num_embeddings} --num_workers ${num_workers} --vqvae_embedding_dim ${embedding_dim} --vqvae_commitment_cost ${commitment_cost}\
     --vqvae_hiddens ${hiddens} --vqvae_residual_hiddens ${residual_hiddens} --vqvae_residual_layers ${residual_layers} --vqvae_residual_hiddens ${residual_hiddens}\
     --vqvae_loss ${vqvae_loss} --optimizer ${optimizer} --reset_lr ${reset_lr} --lr_policy ${lr_policy} --lad_alpha ${lad_alpha} --walk_steps ${walk_steps}\
-    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization}
+    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization} --loss ${argloss}

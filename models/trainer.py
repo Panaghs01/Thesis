@@ -6,7 +6,9 @@ import cv2
 import utils
 import matplotlib.pyplot as plt
 import shap
+from torchvision.ops import sigmoid_focal_loss
 
+from misc.losses import Focal_loss
 from misc.logger_tool import *
 from misc.metric_tool import *
 
@@ -67,10 +69,10 @@ class Trainer():
                                             weight_decay=5e-4)
         elif args.optimizer == 'adam':
             if self.train in ['standard','strong_classifier']:
-                self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-5)
+                self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-3)
             else:
                 self.optimizer = optim.AdamW(self.net.parameters(),
-                                           lr=self.lr,weight_decay=1e-5)
+                                           lr=self.lr,weight_decay=1e-3)
 
 
 
@@ -113,10 +115,10 @@ class Trainer():
         # define the loss functions
         if self.train in ['strong_classifier','classifier','standard']:
             weight_tensor = torch.tensor(self.class_weights,dtype=torch.float32,device=self.device)
-
-            # Removed weights from crossentropy to see if it affects overfitting
-
-            self._pxl_loss = nn.CrossEntropyLoss()
+            if self.argloss == 'ce': 
+                self._pxl_loss = nn.CrossEntropyLoss(weight=weight_tensor)
+            elif self.argloss == 'focal':
+                self._pxl_loss = Focal_loss(n_class=self.n_class,alpha=0.75,gamma=2,reduction='mean')
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
                 self._pxl_loss = nn.MSELoss()
@@ -524,16 +526,6 @@ class Trainer():
                 # update G
                 self._backward()
 
-                            # Apply L1 regularization
-                if self.regularization == 'L1':
-                    l1_norm = sum(p.abs().sum() for p in self.net.parameters())
-                    loss += self.lambda_reg * l1_norm
-                
-                # Apply L2 regularization
-                elif self.regularization == 'L2':
-                    l2_norm = sum(p.pow(2).sum() for p in self.net.parameters())
-                    loss += self.lambda_reg * l2_norm
-
                 #print('gradient sum: ',sum(p.grad.norm().item() for p in self.net.parameters()))
                 if self.accumlation_steps > 0:
                     if (self.batch_id + 1) % self.accumlation_steps == 0:
@@ -559,7 +551,7 @@ class Trainer():
             self.logger.write('Begin evaluation...\n')
             self._clear_cache()
             self.is_training = False
-            #self.net.eval()
+            self.net.eval()
 
             # Iterate over data.
             for self.batch_id, batch in enumerate(self.dataloaders['val'], 0):
