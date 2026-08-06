@@ -25,7 +25,7 @@ lad_alpha=0.01
 walk_steps=4
 
 num_workers=8
-project_name=standard_test_augm_7
+project_name=standard_test_frfr_1
 data_name=Fitzpatrick17k_balanced
 train=standard
 

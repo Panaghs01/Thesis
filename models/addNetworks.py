@@ -126,6 +126,7 @@ class base_resnet18(Base_Grad_model):
         self.classifier = nn.Sequential(
             nn.Linear(in_features,128),
             nn.ReLU(inplace=True),
+            nn.Dropout(p=0.5),
             nn.Linear(128,n_classes)
         )
         self.gradients = None
