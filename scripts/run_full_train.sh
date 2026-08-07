@@ -5,9 +5,9 @@ gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=64
+batch_size=32
 lr=1e-5
-lr_policy=plateau
+lr_policy=linear
 max_epochs=200
 optimizer=adam
 reset_lr=0
@@ -21,13 +21,13 @@ residual_hiddens=512
 vqvae_loss=mse
 argloss=focal
 
-lad_alpha=0.01
+lad_alpha=0.04
 walk_steps=4
 
 num_workers=8
-project_name=standard_test_frfr_1
+project_name=lad_test_frfr_1_linear
 data_name=Fitzpatrick17k_balanced
-train=standard
+train=strong_classifier
 
 regularization=l2
 lambda_reg=0.01

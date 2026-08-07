@@ -93,7 +93,8 @@ if __name__ == '__main__':
     args.checkpoint_dir = os.path.join(args.checkpoint_root, args.project_name)
 
     # best checkpoints for models
-    args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints')
+    args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints',args.project_name)
+
     config = data_config.DataConfig().get_data_config(args.data_name)
     root_dir = config.root_dir
     df = pd.read_csv(os.path.join(root_dir, args.data_name + '_' + 'train' + '.csv'))
