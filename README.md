@@ -1,3 +1,9 @@
 # Thesis
-### Adversarial de-biasing on skin cancer data using Lantent Adversarial De-biasing
-The present work is a bachelor thesis with main focus mitigating bias in skin lesion classification images. The code is by no means optimized. To run the code you need to first download the data (which i will upload to kaggle soon) and insert them into the archive folder. Other than that you just open a terminal to the thesis folder, install the requirements.txt and run the `main.py` file.
+### Explainable latent adversarial network XLAD for bias mitigation on skin cancer dataset.
+The present work is a Masters' thesis with main focus mitigating bias in skin lesion classification images while maintaining an explainable layer. The framework is based on CF-GCN, used for geospatial image change detection. 
+
+### To run the code
+1) Download required libraries
+2) Download the Fitzpatrick17k dataset
+3) Run some scripts to create the csvs if necessary
+4) Run the trainer script
