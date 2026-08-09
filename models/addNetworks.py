@@ -5,7 +5,7 @@ import torchvision
 from torchvision.models import resnet18, efficientnet_b0, densenet121
 import os
 
-from models import vq_vae, simple_classifier
+from models import vq_vae, simple_classifier,comp_models
 from torch.optim import lr_scheduler
 
 def define_net(args):
@@ -30,7 +30,7 @@ def define_net(args):
             classifier_ckpt = simple_classifier.model(in_channels=in_channels, num_classes=args.n_class)
         else:
             raise FileNotFoundError("Pre-trained VQ-VAE encoder not found. Please train the VQ-VAE first.")
-    elif args.train == 'strong_classifier' or 'standard':
+    elif args.train in ['strong_classifier','lad_disco']:
         if os.path.exists(f"{args.best_ckpts}/best_ckpt_classifier.pt") and os.path.exists(f"{args.best_ckpts}/best_ckpt_vqvae.pt"):
             print("Loading models...")
             checkpoint_vq = torch.load(f"{args.best_ckpts}/best_ckpt_vqvae.pt")
@@ -39,6 +39,7 @@ def define_net(args):
             classifier_ckpt.load_state_dict(checkpoint_class['model_strong_state_dict'])
         else:
             raise FileNotFoundError("Pre-trained models not found. Please train the VQ-VAE and simple classifier first.")
+
     else:
 
         classifier_ckpt = None
@@ -53,6 +54,8 @@ def define_strong_net(args):
         net = base_efficientnet_b0(n_classes=args.n_class)
     elif args.strong_classifier == 'base_densenet121':
         net = base_densenet121(n_classes=args.n_class)
+    elif args.strong_classifier == 'fairdisco':
+        net = fairdisco_grad(args.disco_choice,[3,6])
     else:
         raise NotImplementedError(f"Unknown strong classifier: {args.strong_classifier}")
     
@@ -103,6 +106,40 @@ class Base_Grad_model(nn.Module):
     
     def get_activations(self,x):
         return self.features_conv(x)
+
+class fairdisco_grad(Base_Grad_model):
+    def __init__(self,choice,output_size=[3,6]):
+        super(fairdisco_grad,self).__init__()
+        self.disco = comp_models.FairDisCo(choice=choice,output_size=output_size)
+        self.gradients = None
+
+        res = self.disco.feature_extractor
+        self.features_conv = nn.Sequential(
+            res.conv1, res.bn1, res.relu, res.maxpool,
+            res.layer1, res.layer2, res.layer3, res.layer4
+        )
+
+        self.avgpool = res.avgpool
+        self.fc_bottleneck = res.fc
+
+    def forward(self,x):
+        x.requires_grad_()
+
+        x = self.features_conv(x)  
+
+        h = x.register_hook(self.activations_hook)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x,1)
+        x = self.fc_bottleneck(x)
+
+        out_1 = self.disco.branch_1(x)
+        out_2 = self.disco.branch_2(x)
+        out_4 = self.disco.project_head(x)
+        # detach feature map and pass though branch 2 again
+        feature_map_detach = x.detach()
+        out_3 = self.disco.branch_2(feature_map_detach)
+        return [out_1, out_2, out_3, out_4]
 
 class base_resnet18(Base_Grad_model):
     def __init__(self,n_classes):

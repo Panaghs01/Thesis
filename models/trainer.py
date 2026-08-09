@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import shap
 from torchvision.ops import sigmoid_focal_loss
 
-from misc.losses import Focal_loss
+from misc.losses import Focal_loss,Confusion_Loss,Supervised_Contrastive_Loss
 from misc.logger_tool import *
 from misc.metric_tool import *
 
@@ -42,6 +42,10 @@ class Trainer():
         self.device = torch.device("cuda:%s" % args.gpu_ids[0] if torch.cuda.is_available() and len(args.gpu_ids)>0
                                    else "cpu")
 
+        self.disco_alpha = args.disco_alpha
+        self.disco_beta = args.disco_beta
+        self.disco_choice = args.disco_choice
+
         self.fine_tune_delta = args.fine_tune_delta    
         self.fine_tune_patience = args.fine_tune_patience
         self.fine_tuned = False
@@ -70,6 +74,8 @@ class Trainer():
         elif args.optimizer == 'adam':
             if self.train in ['standard','strong_classifier']:
                 self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-3)
+            elif self.train in ['fairdisco']:
+                self.optimizer = optim.AdamW(self.net.disco.parameters(),lr=self.lr,weight_decay=1e-3)
             else:
                 self.optimizer = optim.AdamW(self.net.parameters(),
                                            lr=self.lr,weight_decay=1e-3)
@@ -124,6 +130,9 @@ class Trainer():
                 self._pxl_loss = nn.MSELoss()
             elif args.vqvae_loss == 'l1':
                 self._pxl_loss = nn.L1Loss()
+        elif self.train == 'fairdisco':
+            self._pxl_loss = [nn.CrossEntropyLoss(), Confusion_Loss(), 
+            nn.CrossEntropyLoss(), Supervised_Contrastive_Loss(0.1, self.device)]
         else:
             raise NotImplemented(self.train)
 
@@ -288,7 +297,11 @@ class Trainer():
     def _update_metric(self):
         target = self.batch['label'].to(self.device).detach()
 
-        pred = self.net_pred.detach()
+        if self.train == 'fairdisco':
+            pred = self.net_pred[0].detach()
+        else:
+            pred = self.net_pred.detach()
+
         pred = torch.argmax(pred,dim=1)
 
         current_score = self.running_metric.update_cm(pr=pred.cpu().numpy(), gt=target.cpu().numpy())
@@ -300,7 +313,10 @@ class Trainer():
         fitzpatrick = self.batch['fitzpatrick'].to(self.device).detach()
         
         # 2. Process predictions
-        pred = self.net_pred.detach()
+        if self.train == 'fairdisco':
+            pred = self.net_pred[0].detach()
+        else:
+            pred = self.net_pred.detach()
         pred = torch.argmax(pred, dim=1)
 
         # 3. Create boolean masks
@@ -381,7 +397,7 @@ class Trainer():
                 self._visualize_perturbations(vis_input,vis_perturbation)
                 vis_pred = self._visualize_pred(self.batch['image'][:16])
 
-            elif self.train == 'standard':
+            elif self.train in ['standard','fairdisco']:
                 vis_pred = self._visualize_pred(self.batch['image'][:16])
 
             else:
@@ -425,8 +441,11 @@ class Trainer():
             )
 
             target = self.batch['label'].to(self.device).detach()
-            
-            pred = self.net_pred.detach()
+            if self.train == 'fairdisco':
+
+                pred = self.net_pred[0].detach()
+            else:
+                pred = self.net_pred.detach()
             pred = torch.argmax(pred,dim=1)
 
             self.running_metric.get_cm(target.cpu().numpy(),pred.cpu().numpy())
@@ -485,6 +504,9 @@ class Trainer():
             self.perturbation = self.vqvae.decoder(adv_walk)
         elif self.train == 'standard':
             self.net_pred = self.net(batch['image'].to(self.device))
+        elif self.train == 'fairdisco':
+            self.net_pred = self.net(batch['image'].float().to(self.device))
+            self.fitz_pred = batch['fitzpatrick']
 
     def _backward(self):
 
@@ -494,6 +516,15 @@ class Trainer():
         elif self.train in ['strong_classifier','classifier','standard']:
             gt = self.batch['label'].to(self.device).long()
             self.loss = self._pxl_loss(self.net_pred.float(), gt)
+        elif self.train == 'fairdisco':
+            label_c, label_t = self.batch['label'].to(self.device),self.batch['fitzpatrick'].to(self.device)
+            label_t -= label_t-1
+            loss0 = self._pxl_loss[0](self.net_pred[0],label_c)
+            loss1 = self._pxl_loss[1](self.net_pred[1],label_t)
+            loss2 = self._pxl_loss[2](self.net_pred[2],label_t)
+            loss3 = self._pxl_loss[3](self.net_pred[3],label_c)
+
+            self.loss = loss0 + loss1*self.disco_alpha + loss2 + loss3*self.disco_beta
         
         self.loss.backward()
     

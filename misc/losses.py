@@ -33,8 +33,9 @@ class Confusion_Loss(torch.nn.Module):
     
     def forward(self, output, label):
         # output (bs, out_size). label (bs)
-        prediction = self.softmax(output) # (bs, out_size)
-        log_prediction = torch.log(prediction)
+        #prediction = self.softmax(output) # (bs, out_size) # pure softmax causes -inf (log(0) might happen) functional softmax evades this issue
+        #log_prediction = torch.log(prediction)
+        log_prediction = F.log_softmax(output)
         loss = -torch.mean(torch.mean(log_prediction, dim=1), dim=0)
 
         # loss = torch.mean(torch.mean(prediction*log_prediction, dim=1), dim=0)

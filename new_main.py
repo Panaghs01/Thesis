@@ -81,6 +81,12 @@ if __name__ == '__main__':
     parser.add_argument('--fine_tune_patience',default=5,type=int,help='After these epochs model will train all layers')
     parser.add_argument('--fine_tune_delta',default=0.05,type=float)
 
+    # Fair Disco paramas
+    parser.add_argument('--disco_choice',default='disentangle',type=str)
+    parser.add_argument('--disco_alpha',default=1.0,type=float)
+    parser.add_argument('--disco_beta',default=0.8,type=float)
+
+
     args = parser.parse_args()
     
     print(args.gpu_ids)

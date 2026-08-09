@@ -25,9 +25,10 @@ lad_alpha=0.04
 walk_steps=4
 
 num_workers=8
-project_name=lad_test_frfr_1_linear
+project_name=fairdisco_test_2
 data_name=Fitzpatrick17k_balanced
-train=strong_classifier
+train=fairdisco
+strong_classifier=fairdisco
 
 regularization=l2
 lambda_reg=0.01
@@ -42,4 +43,7 @@ python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --vqvae_num_embeddings ${num_embeddings} --num_workers ${num_workers} --vqvae_embedding_dim ${embedding_dim} --vqvae_commitment_cost ${commitment_cost}\
     --vqvae_hiddens ${hiddens} --vqvae_residual_hiddens ${residual_hiddens} --vqvae_residual_layers ${residual_layers} --vqvae_residual_hiddens ${residual_hiddens}\
     --vqvae_loss ${vqvae_loss} --optimizer ${optimizer} --reset_lr ${reset_lr} --lr_policy ${lr_policy} --lad_alpha ${lad_alpha} --walk_steps ${walk_steps}\
-    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization} --loss ${argloss}
+    --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization} --loss ${argloss}\
+     --strong_classifier ${strong_classifier}
+
+exit
