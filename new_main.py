@@ -55,6 +55,10 @@ if __name__ == '__main__':
                         help='base_resnet18 | base_efficientnet_b0 | base_densenet121')
     parser.add_argument('--loss', default='mse', type=str)
 
+    #Loss
+    parser.add_argument('--focal_alpha',default=1.0,type=float)
+    parser.add_argument('--focal_gamma',default=2.0,type=float)
+
     #vqvae
     parser.add_argument('--vqvae_hiddens', default=128, type=int, help='hidden dimension for vqvae')
     parser.add_argument('--vqvae_residual_hiddens', default=128, type=int, help='hidden dimension for vqvae residual stack')
@@ -99,7 +103,7 @@ if __name__ == '__main__':
     args.checkpoint_dir = os.path.join(args.checkpoint_root, args.project_name)
 
     # best checkpoints for models
-    args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints',args.project_name)
+    args.best_ckpts = os.path.join(args.checkpoint_root,'best_checkpoints')
 
     config = data_config.DataConfig().get_data_config(args.data_name)
     root_dir = config.root_dir

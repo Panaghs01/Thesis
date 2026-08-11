@@ -7,7 +7,7 @@ checkpoint_root=checkpoint_test
 img_size=224
 batch_size=32
 lr=1e-5
-lr_policy=linear
+lr_policy=plateau
 max_epochs=200
 optimizer=adam
 reset_lr=0
@@ -19,16 +19,19 @@ hiddens=256
 residual_layers=6
 residual_hiddens=512
 vqvae_loss=mse
-argloss=focal
 
-lad_alpha=0.04
+argloss=focal
+focal_alpha=0.5
+focal_gamma=1.5
+
+lad_alpha=0.03
 walk_steps=4
 
 num_workers=8
-project_name=fairdisco_test_2
+project_name=lad_test_3
 data_name=Fitzpatrick17k_balanced
-train=fairdisco
-strong_classifier=fairdisco
+train=strong_classifier
+strong_classifier=base_resnet18
 
 regularization=l2
 lambda_reg=0.01
@@ -44,6 +47,6 @@ python new_main.py --gpu_ids ${gpus} --checkpoint_root ${checkpoint_root} \
     --vqvae_hiddens ${hiddens} --vqvae_residual_hiddens ${residual_hiddens} --vqvae_residual_layers ${residual_layers} --vqvae_residual_hiddens ${residual_hiddens}\
     --vqvae_loss ${vqvae_loss} --optimizer ${optimizer} --reset_lr ${reset_lr} --lr_policy ${lr_policy} --lad_alpha ${lad_alpha} --walk_steps ${walk_steps}\
     --fine_tune_patience ${fine_tune_patience} --fine_tune_delta ${fine_tune_delta} --regularization ${regularization} --loss ${argloss}\
-     --strong_classifier ${strong_classifier}
+     --strong_classifier ${strong_classifier} --focal_alpha ${focal_alpha} --focal_gamma ${focal_gamma}
 
 exit

@@ -124,7 +124,7 @@ class Trainer():
             if self.argloss == 'ce': 
                 self._pxl_loss = nn.CrossEntropyLoss(weight=weight_tensor)
             elif self.argloss == 'focal':
-                self._pxl_loss = Focal_loss(n_class=self.n_class,alpha=0.75,gamma=2,reduction='mean')
+                self._pxl_loss = Focal_loss(n_class=self.n_class,alpha=self.args.focal_alpha,gamma=self.args.focal_gamma,reduction='mean')
         elif self.train == 'vqvae':
             if args.vqvae_loss == 'mse':
                 self._pxl_loss = nn.MSELoss()
@@ -425,7 +425,7 @@ class Trainer():
             plt.imsave(file_name, vis)
 
     def _collect_epoch_states(self):
-        if self.train in ['strong_classifier','classifier','standard']:
+        if self.train in ['strong_classifier','classifier','standard','fairdisco']:
             scores = self.running_metric.get_scores()
             fairness = self.running_fairness.get_scores()
             self.epoch_acc = scores['mf1']
@@ -447,7 +447,7 @@ class Trainer():
             else:
                 pred = self.net_pred.detach()
             pred = torch.argmax(pred,dim=1)
-
+            
             self.running_metric.get_cm(target.cpu().numpy(),pred.cpu().numpy())
 
         elif self.train == 'vqvae':
