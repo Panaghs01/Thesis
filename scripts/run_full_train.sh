@@ -5,7 +5,7 @@ gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=32
+batch_size=16
 lr=1e-5
 lr_policy=plateau
 max_epochs=200
@@ -21,16 +21,16 @@ residual_hiddens=512
 vqvae_loss=mse
 
 argloss=focal
-focal_alpha=0.5
-focal_gamma=1.5
+focal_alpha=0.75
+focal_gamma=1.0
 
-lad_alpha=0.03
+lad_alpha=0.07
 walk_steps=4
 
 num_workers=8
-project_name=lad_test_3
+project_name=classifier_train_2
 data_name=Fitzpatrick17k_balanced
-train=strong_classifier
+train=classifier
 strong_classifier=base_resnet18
 
 regularization=l2

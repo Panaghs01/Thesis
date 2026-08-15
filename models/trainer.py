@@ -456,20 +456,20 @@ class Trainer():
 
     def adversarial_walk(self,vqvae_out,steps=10,a=0.2):
         h_delta = vqvae_out.clone().detach().requires_grad_(True)
-        e = 1e-4
+        e = 1e-8
         
         for _ in range(steps):
             prediction = self.classifier(h_delta)
             prediction = torch.softmax(prediction,dim=1)
-            entropy = -torch.special.entr(prediction+e).sum(dim=1).mean()
+            entropy = torch.special.entr(prediction+e).sum(dim=1).mean()
 
             grad = torch.autograd.grad(entropy, h_delta, create_graph=False)[0]
-            #delta = (grad - grad.mean()) / (grad.std() + e)
+            delta = (grad - grad.mean()) / (grad.std() + e)
 
-            delta = torch.sign(grad)   # really small grad due to std. Try sign
+            #delta = torch.sign(grad)   # really small grad due to std. Try sign
             h_delta = (h_delta + a*delta).detach().requires_grad_(True)
 
-        _,h_delta,perplexity,_ = self.vqvae.vq(h_delta)
+            _,h_delta,perplexity,_ = self.vqvae.vq(h_delta)
 
         return h_delta, perplexity
 
