@@ -73,7 +73,7 @@ class Trainer():
                                             weight_decay=5e-4)
         elif args.optimizer == 'adam':
             if self.train in ['standard','strong_classifier']:
-                self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-3)
+                self.optimizer = optim.AdamW(self.net.parameters(),lr=self.lr,weight_decay=1e-4)
             elif self.train in ['fairdisco']:
                 self.optimizer = optim.AdamW(self.net.disco.parameters(),lr=self.lr,weight_decay=1e-3)
             else:

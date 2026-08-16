@@ -1,7 +1,8 @@
+from multiprocessing import reduction
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.ops import sigmoid_focal_loss
+
 
 class Focal_loss(torch.nn.Module):
     def __init__(self,n_class,alpha=1,gamma=2,reduction='mean'):
@@ -12,15 +13,15 @@ class Focal_loss(torch.nn.Module):
         self.reduction = reduction
 
     def forward(self,inputs,targets):
-        targets_one_hot = F.one_hot(targets, num_classes=self.n_class).float()
-
-        return sigmoid_focal_loss(
-            inputs=inputs,
-            targets=targets_one_hot,
-            alpha=self.alpha,
-            gamma=self.gamma,
-            reduction=self.reduction
-        )
+        ce_loss = F.cross_entropy(inputs,targets,reduction='none')
+        pt = torch.exp(-ce_loss)
+        focal_loss = self.alpha*((1-pt)**self.gamma)*ce_loss
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        else:
+            return focal_loss
 
 class Confusion_Loss(torch.nn.Module):
     '''

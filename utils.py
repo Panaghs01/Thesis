@@ -68,7 +68,7 @@ def get_weighted_sampler(dataset,split):
         Must expose a pandas DataFrame in `dataset.df` that has a column
         called ``three_partition_label`` with the values:
             * 'benign'
-            * 'non-neoplastic'   → treated as benign
+            * 'non-neoplastic'
             * 'malignant'
 
     Returns
@@ -85,8 +85,10 @@ def get_weighted_sampler(dataset,split):
     numeric = three_labels.map(label_to_idx).values.astype(np.int64)
 
 
-    class_counts = np.bincount(numeric)          # shape: [2]
+    class_counts = np.bincount(numeric)          # shape: [3]
 
+    min_class_counts = class_counts.min()
+    num_samples = int(min_class_counts * 3)
 
     class_weights = 1.0 / class_counts.astype(np.float32)
 
@@ -96,7 +98,7 @@ def get_weighted_sampler(dataset,split):
 
     sampler = WeightedRandomSampler(
         weights=sample_weights,
-        num_samples=len(sample_weights),      # total number of samples to draw
+        num_samples=num_samples,      # total number of samples to draw
         replacement=True
     )
     return sampler

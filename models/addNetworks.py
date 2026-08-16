@@ -86,6 +86,23 @@ def get_scheduler(optimizer, args):
         scheduler = lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=0.1)
     elif args.lr_policy == 'plateau':
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=15,min_lr=1e-8)
+    elif args.lr_policy == 'warmup':
+        # 1. Native PyTorch Warmup
+        warmup_scheduler = lr_scheduler.LinearLR(
+            optimizer, 
+            start_factor=0.1, # Starts at 10% of your base LR
+            total_iters=20
+        )
+
+        # 2. Your standard main scheduler
+        main_scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=50)
+
+        # 3. Chain them together
+        scheduler = lr_scheduler.SequentialLR(
+            optimizer, 
+            schedulers=[warmup_scheduler, main_scheduler], 
+            milestones=[30] # Switches to main_scheduler after warmup_epochs
+        )
     else:
         return NotImplementedError('learning rate policy [%s] is not implemented' % args.lr_policy)
     return scheduler
@@ -156,14 +173,13 @@ class base_resnet18(Base_Grad_model):
             res.layer3,
             res.layer4
         )
-
+        self.dropout = nn.Dropout(0.5)
         self.avgpool = res.avgpool
 
         in_features = res.fc.in_features
         self.classifier = nn.Sequential(
             nn.Linear(in_features,128),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
             nn.Linear(128,n_classes)
         )
         self.gradients = None
@@ -171,7 +187,7 @@ class base_resnet18(Base_Grad_model):
     def forward(self, x):
         x.requires_grad_()
 
-        x = self.features_conv(x)
+        x = self.dropout(self.features_conv(x))
 
         h = x.register_hook(self.activations_hook)
 
