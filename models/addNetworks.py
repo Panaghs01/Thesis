@@ -95,7 +95,7 @@ def get_scheduler(optimizer, args):
         )
 
         # 2. Your standard main scheduler
-        main_scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=50)
+        main_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=20,min_lr=1e-7)
 
         # 3. Chain them together
         scheduler = lr_scheduler.SequentialLR(

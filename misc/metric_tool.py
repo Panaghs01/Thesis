@@ -174,28 +174,29 @@ def cm2fairness(confusion_matrix_prot,confusion_matrix_unprot,positive_class=1):
 
     acc_prot = tp_prot.sum() / (confusion_matrix_prot.sum() + eps)
     acc_unprot = tp_unprot.sum() / (confusion_matrix_unprot.sum() + eps)
-    ap = acc_prot / (acc_unprot + eps)
+    ap = bounded_ratio(acc_prot,acc_unprot,eps)
 
     ### DISPARATE IMPACT DI ###
 
-    success_prot = confusion_matrix_prot.sum(axis=0)[positive_class]
-    success_unprot = confusion_matrix_unprot.sum(axis=0)[positive_class]
-    
-    full_prot = confusion_matrix_prot.sum()
-    full_unprot = confusion_matrix_unprot.sum()
+    full_prot = confusion_matrix_prot.sum() + eps
+    full_unprot = confusion_matrix_unprot.sum() + eps
 
-    di = (success_prot / full_prot) / (success_unprot / full_unprot + eps)
+    success_prot = confusion_matrix_prot.sum(axis=0)[positive_class] / full_prot
+    success_unprot = confusion_matrix_unprot.sum(axis=0)[positive_class] / full_unprot
+
+    di = bounded_ratio(success_prot,success_unprot,eps)
 
     ### EQUAL OPPORTUNITY EO ###
 
     pos_prot = confusion_matrix_prot.sum(axis=1)[positive_class]
     pos_unprot = confusion_matrix_unprot.sum(axis=1)[positive_class]
 
-    tp_class_prot = confusion_matrix_prot[positive_class, positive_class]
-    tp_class_unprot = confusion_matrix_unprot[positive_class, positive_class]
+    tp_class_prot = confusion_matrix_prot[positive_class, positive_class] /(pos_prot+eps)
+    tp_class_unprot = confusion_matrix_unprot[positive_class, positive_class] /(pos_unprot+eps)
 
-    eo = (tp_class_prot / (pos_prot + eps)) / (tp_class_unprot / pos_unprot + eps)
+    eo = bounded_ratio(tp_class_prot,tp_class_unprot,eps)
 
+    
 
     return {
         'EO': eo,
@@ -203,6 +204,8 @@ def cm2fairness(confusion_matrix_prot,confusion_matrix_unprot,positive_class=1):
         'AP': ap
     }
     
+def bounded_ratio(v1,v2,eps):
+    return min(v1,v2)/ (max(v1,v2)+eps)
 
 def cm2score(confusion_matrix):
     hist = confusion_matrix
