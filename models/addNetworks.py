@@ -40,10 +40,6 @@ def define_net(args):
         else:
             raise FileNotFoundError("Pre-trained models not found. Please train the VQ-VAE and simple classifier first.")
 
-    else:
-
-        classifier_ckpt = None
-
 
     return vqvae_ckpt,classifier_ckpt
 
@@ -95,7 +91,7 @@ def get_scheduler(optimizer, args):
         )
 
         # 2. Your standard main scheduler
-        main_scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,factor=0.5,patience=20,min_lr=1e-7)
+        main_scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.max_epochs-20,eta_min=1e-6)
 
         # 3. Chain them together
         scheduler = lr_scheduler.SequentialLR(

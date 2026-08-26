@@ -1,3 +1,4 @@
+from torch._dynamo import exc
 import os
 from argparse import ArgumentParser
 from thop import profile
@@ -7,7 +8,7 @@ import pandas as pd
 
 import utils
 from models.trainer import Trainer
-
+from models.evaluator import Evaluator
 
 
 def train(args):
@@ -17,7 +18,9 @@ def train(args):
     model.train_models()
 
 def test(args):
-    pass
+    dataloaders = utils.get_dataloaders(args)
+    model = Evaluator(args=args,dataloaders=dataloaders)
+    model.eval_models()
 
 
 if __name__ == '__main__':
@@ -31,6 +34,7 @@ if __name__ == '__main__':
                 help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
     parser.add_argument('--project_name', default='test', type=str)
     parser.add_argument('--checkpoint_root', default='checkpoints', type=str)
+    parser.add_argument('--mode',default='Train',type=str)
 
     # data
     parser.add_argument('--num_workers', default=0, type=int)
@@ -124,6 +128,10 @@ if __name__ == '__main__':
     args.vis_dir = os.path.join('vis', args.project_name, args.train)
     os.makedirs(args.vis_dir, exist_ok=True)
 
-    train(args)
-
-    #test(args)
+    try:
+        if args.mode == 'Train':
+            train(args)
+        elif args.mode == 'Eval':
+            test(args)
+    except Exception as e:
+        raise NotImplementedError(f"Unkown training mode: {e}")

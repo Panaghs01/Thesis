@@ -43,10 +43,14 @@ def get_dataloaders(args):
     
     datasets = {'train': training_set, 'val': val_set}
 
-    dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
+    if args.mode == 'Train':
+        dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
                                  , num_workers=args.num_workers,sampler=get_weighted_sampler(datasets[x],x)) 
                                  for x in ['train', 'val']}
-    
+    elif args.mode == 'Eval':
+        dataloaders = {x: DataLoader(datasets[x], batch_size=args.batch_size
+                                 , num_workers=args.num_workers) 
+                                 for x in ['train', 'val']}
     return dataloaders
 
 def make_numpy_grid(tensor_data, pad_value=0,padding=0):

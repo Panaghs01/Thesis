@@ -24,11 +24,11 @@ argloss=focal
 focal_alpha=1.5
 focal_gamma=2.0
 
-lad_alpha=0.04
+lad_alpha=0.03
 walk_steps=4
 
 num_workers=8
-project_name=lad_train_3
+project_name=lad_train_8
 data_name=Fitzpatrick17k_balanced
 train=strong_classifier
 strong_classifier=base_resnet18

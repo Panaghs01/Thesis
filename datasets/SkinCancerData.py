@@ -58,13 +58,15 @@ class Fitzpatrick(Dataset):
         if is_train:
             self.augm = transforms.Compose([
                 transforms.Resize((self.img_size, self.img_size)),
+
+                transforms.RandomCrop(size=self.img_size),
+                transforms.CenterCrop(size=self.img_size),
+                
                 transforms.RandomHorizontalFlip(0.5),
                 transforms.RandomVerticalFlip(0.5),
                 transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 0.9)),
 
-                transforms.Pad(padding=60,padding_mode='reflect'),
-                transforms.RandomCrop(size=self.img_size),
-                transforms.CenterCrop(size=self.img_size),
+
                 transforms.ColorJitter(brightness=0.2,contrast=0.2,saturation=0.2,hue=0.2),
                 transforms.ToTensor() if to_tensor else transforms.Lambda(lambda x: x)
             ])
