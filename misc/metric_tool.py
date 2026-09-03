@@ -161,7 +161,7 @@ def cm2F1(confusion_matrix):
     # F1 score
     F1 = 2 * recall * precision / (recall + precision + np.finfo(np.float32).eps)
     mean_F1 = np.nanmean(F1)
-    return mean_F1
+    return {'ACC':acc,'F1':mean_F1}
 
 def cm2fairness(confusion_matrix_prot,confusion_matrix_unprot,positive_class=1):
     

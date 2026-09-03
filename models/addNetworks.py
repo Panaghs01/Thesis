@@ -91,7 +91,7 @@ def get_scheduler(optimizer, args):
         )
 
         # 2. Your standard main scheduler
-        main_scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=args.max_epochs-20,eta_min=1e-6)
+        main_scheduler = lr_scheduler.CosineAnnealingLR(optimizer,T_max=50,eta_min=1e-6)
 
         # 3. Chain them together
         scheduler = lr_scheduler.SequentialLR(
@@ -201,6 +201,7 @@ class base_efficientnet_b0(Base_Grad_model):
         eff = efficientnet_b0(weights=efficientnet_b0(weights=torchvision.models.EfficientNet_B0_Weights.DEFAULT))
 
         self.features_conv = eff.features
+        self.dropout = nn.Dropout(0.5)
         self.avg_pool = eff.avgpool
         eff.classifier[1].out_features = n_classes
         self.classifier = eff.classifier
@@ -208,7 +209,7 @@ class base_efficientnet_b0(Base_Grad_model):
 
     def forward(self, x):
         x = self.features_conv(x)
-
+        x = self.dropout(x)
         h = x.register_hook(self.activations_hook)
         
         x = F.relu(x, inplace=False) # Use False to avoid gradient issues
@@ -220,20 +221,20 @@ class base_efficientnet_b0(Base_Grad_model):
 class base_densenet121(Base_Grad_model):
     def __init__(self,n_classes):
         super(base_densenet121, self).__init__()
-        dn = densenet121(pretrained=True)
+        dn = densenet121(weights=torchvision.models.DenseNet121_Weights.DEFAULT)
         self.features_conv = dn.features
+        self.dropout = nn.Dropout(0.5)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        dn.classifier.out_features = n_classes
-        self.classifier = dn.classifier
+        in_features = dn.classifier.in_features
+        self.classifier = nn.Linear(in_features,n_classes)
         self.gradients = None
 
 
     def forward(self, x):
         x = self.features_conv(x)
-
+        x = self.dropout(x)
         h = x.register_hook(self.activations_hook)
-        
-        x = F.relu(x, inplace=False) # Use False to avoid gradient issues
+
         x = self.avg_pool(x)
         x = torch.flatten(x, 1)
 

@@ -360,11 +360,11 @@ class Trainer():
             ##### MESSAGE #####
             if np.mod(self.batch_id, 100) == 1:
                 if self.train == 'strong_classifier' or 'standard':
-                    message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f,running_EO: %.5f,' \
+                    message = 'Is_training: %s. [%d,%d][%d,%d], imps: %.2f, est: %.2fh, G_loss: %.5f, running_mf1: %.5f, running_acc: %.5f, running_EO: %.5f,' \
                     ' running_DI: %.5f, running_AP: %.5f\n' %\
                             (self.is_training, self.epoch_id, self.max_num_epochs-1, self.batch_id, m,
                             imps*self.batch_size, est,
-                            self.loss.item(), running_acc, running_fairness['EO'], running_fairness['DI'], running_fairness['AP'])
+                            self.loss.item(), running_acc['F1'],running_acc['ACC'], running_fairness['EO'], running_fairness['DI'], running_fairness['AP'])
                     
                 else:
 

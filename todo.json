@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "tags": [],
-  "lastNodeId": 1,
+  "lastNodeId": 5,
   "nodes": [
     {
       "kind": "Checkbox",
@@ -12,6 +12,46 @@
       "nodes": [],
       "collapsed": true,
       "checked": true
+    },
+    {
+      "kind": "Text",
+      "id": 3,
+      "name": "Experiements",
+      "tags": [],
+      "description": null,
+      "nodes": [
+        {
+          "kind": "Checkbox",
+          "id": 2,
+          "name": "Train a model with focal loss only",
+          "tags": [],
+          "description": "Train a standard classifier for paper experiments using only focal loss",
+          "nodes": [],
+          "collapsed": false,
+          "checked": false
+        },
+        {
+          "kind": "Checkbox",
+          "id": 4,
+          "name": "Train fairdisco",
+          "tags": [],
+          "description": null,
+          "nodes": [],
+          "collapsed": true,
+          "checked": false
+        },
+        {
+          "kind": "Checkbox",
+          "id": 5,
+          "name": "Add Acc",
+          "tags": [],
+          "description": null,
+          "nodes": [],
+          "collapsed": true,
+          "checked": false
+        }
+      ],
+      "collapsed": false
     }
   ]
 }

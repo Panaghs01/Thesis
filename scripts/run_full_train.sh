@@ -5,10 +5,10 @@ gpus=0
 checkpoint_root=checkpoint_test
 
 img_size=224
-batch_size=64
+batch_size=32
 lr=3e-4
 lr_policy=warmup
-max_epochs=2000
+max_epochs=500
 optimizer=adam
 reset_lr=0
 
@@ -21,17 +21,17 @@ residual_hiddens=512
 vqvae_loss=mse
 
 argloss=focal
-focal_alpha=1.5
+focal_alpha=1.0
 focal_gamma=2.0
 
-lad_alpha=0.03
+lad_alpha=0.02
 walk_steps=4
 
 num_workers=8
-project_name=lad_train_8
+project_name=lad_dense_train_2
 data_name=Fitzpatrick17k_balanced
 train=strong_classifier
-strong_classifier=base_resnet18
+strong_classifier=base_densenet121
 
 regularization=l2
 lambda_reg=0.01
