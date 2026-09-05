@@ -192,27 +192,27 @@ class base_resnet18(Base_Grad_model):
         x = self.classifier(x)
         return x
     
-        
-
 
 class base_efficientnet_b0(Base_Grad_model):
     def __init__(self,n_classes):
         super(base_efficientnet_b0, self).__init__()
-        eff = efficientnet_b0(weights=efficientnet_b0(weights=torchvision.models.EfficientNet_B0_Weights.DEFAULT))
+        eff = efficientnet_b0(weights=torchvision.models.EfficientNet_B0_Weights.DEFAULT)
 
         self.features_conv = eff.features
         self.dropout = nn.Dropout(0.5)
         self.avg_pool = eff.avgpool
-        eff.classifier[1].out_features = n_classes
-        self.classifier = eff.classifier
+        in_features = eff.classifier[1].out_features
+        self.classifier = nn.Sequential(
+            nn.Dropout(0.2,inplace=True),
+            nn.Linear(in_features=1280,out_features=n_classes)
+        )
         self.gradients = None
 
     def forward(self, x):
         x = self.features_conv(x)
         x = self.dropout(x)
         h = x.register_hook(self.activations_hook)
-        
-        x = F.relu(x, inplace=False) # Use False to avoid gradient issues
+
         x = self.avg_pool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)

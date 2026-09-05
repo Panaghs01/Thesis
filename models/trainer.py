@@ -429,9 +429,9 @@ class Trainer():
             scores = self.running_metric.get_scores()
             fairness = self.running_fairness.get_scores()
             self.epoch_acc = scores['mf1']
-            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f\n'\
+            self.logger.write('Is_training: %s. Epoch %d / %d, epoch_mF1= %.5f, epoch_acc= %.5f\n'\
                               'F1_benign= %.5f, F1_malignant: %.5f\n' %
-                (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc, \
+                (self.is_training, self.epoch_id, self.max_num_epochs-1, self.epoch_acc, scores['acc'],\
                     scores['F1_0'], scores['F1_1']))
             
             self.logger.write(

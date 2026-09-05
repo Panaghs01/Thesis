@@ -28,7 +28,7 @@
           "description": "Train a standard classifier for paper experiments using only focal loss",
           "nodes": [],
           "collapsed": false,
-          "checked": false
+          "checked": true
         },
         {
           "kind": "Checkbox",
@@ -38,7 +38,7 @@
           "description": null,
           "nodes": [],
           "collapsed": true,
-          "checked": false
+          "checked": true
         },
         {
           "kind": "Checkbox",
@@ -48,7 +48,7 @@
           "description": null,
           "nodes": [],
           "collapsed": true,
-          "checked": false
+          "checked": true
         }
       ],
       "collapsed": false

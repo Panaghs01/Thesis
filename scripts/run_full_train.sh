@@ -28,10 +28,10 @@ lad_alpha=0.02
 walk_steps=4
 
 num_workers=8
-project_name=lad_dense_train_2
+project_name=lad_eff_train_1
 data_name=Fitzpatrick17k_balanced
 train=strong_classifier
-strong_classifier=base_densenet121
+strong_classifier=base_efficientnet_b0
 
 regularization=l2
 lambda_reg=0.01
